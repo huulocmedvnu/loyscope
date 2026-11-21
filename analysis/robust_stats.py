@@ -230,9 +230,11 @@ with open(os.path.join(TAB, "robust_threshold_sensitivity.tsv"), "w") as f:
 # ---------- 5. overdispersion against a common-fraction null ----------
 od = []
 T = []
-for ds in ["ad_mssm", "ad_radc", "retina", "aida", "iaging", "onek1k_geo", "blood", "tsapiens", "ckd_sn", "kidney"]:
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from datasets import canonical
+for ds in canonical(EXT):  # every dataset, each cohort once
     fn = os.path.join(EXT, f"{ds}.fitamb.tsv")
-    if not os.path.exists(fn): continue
     for (ct, d), x in donor_values(fn, 5, lambda r: r["disease"] == "normal").items():
         if x["age"] is not None and x["age"] >= 55: T.append((ds, ct, x))
 by = {}

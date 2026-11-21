@@ -40,3 +40,8 @@ random.seed(1); ge = 0; bb = b[:]
 for _ in range(10000):
     random.shuffle(bb); r2 = 1 - 6 * sum((a[i] - bb[i]) ** 2 for i in range(n)) / (n * (n * n - 1)); ge += abs(r2) >= abs(rho)
 print(f"Spearman rho(LOY, log lifespan) = {rho:+.2f}, n = {n} classes, permutation P = {(ge+1)/10001:.3f}")
+# classes used for the correlation (read by Figure 5b)
+with open(os.path.join(TAB, "lifespan_classes.tsv"), "w") as w:
+    w.write("cell_class\tlifespan_days\tmean_loy_pct\tdonors\n")
+    for k, v in by.items():
+        if len(v) >= 5 and life.get(k): w.write(f"{k}\t{life[k]}\t{100 * st.mean(a for a, _ in v):.3f}\t{len(v)}\n")

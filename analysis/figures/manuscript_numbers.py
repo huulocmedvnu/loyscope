@@ -4,7 +4,7 @@ from common import *
 N = {}
 # pseudo-Y zero-read rule vs model by expected Y bins
 bins = [(0, 1), (1, 2), (2, 5), (5, 1e9)]; pn = {b: [] for b in bins}; pm = {b: [] for b in bins}; ng = 0; datasets = set()
-for fn in glob.glob(ext("*.fitamb.tsv")):
+for fn in [ext(f"{k}.fitamb.tsv") for k in canonical()]:
     for r in rows(fn):
         if r["sex"] != "male" or r["k"] == "NaN" or not (r["assay"].startswith("10x") or "GEO" in r["assay"]): continue
         e = float(r["mu"]) * float(r["mean_umi"]); ng += 1; datasets.add(os.path.basename(fn))

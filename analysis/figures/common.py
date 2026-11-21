@@ -34,3 +34,7 @@ def save(fig, name):
     fig.write_image(os.path.join(OUT, name + ".pdf"))
     fig.write_html(os.path.join(OUT, name + ".html")); print("written", name, f"{round(fig.layout.width * scale)} px wide")
 def leg(x, y, xa="left", ya="top"): return dict(x=x, y=y, xanchor=xa, yanchor=ya, bgcolor="rgba(255,255,255,0)")
+import sys as _sys
+_sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from datasets import NAMES as ATLAS_NAMES, canonical as _canonical
+def canonical(): return _canonical(EXT)

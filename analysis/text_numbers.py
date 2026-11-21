@@ -18,7 +18,9 @@ def age(s):
 OUT = {}; TXT = []
 def put(key, val, note=""):
     OUT[key] = val; TXT.append(f"{key}: {val}{'   # ' + note if note else ''}")
-SKIP = {"onek1k", "retina_lib"}
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from datasets import EXCLUDE as SKIP, NAMES as ATLAS_NAMES
 HEART = lambda r: any(k in r["tissue"].lower() for k in ("heart", "ventric", "atri", "myocard"))
 
 def male_groups(fn, thr, sel=lambda r: True):
@@ -69,15 +71,35 @@ put("male_groups_all", N["male_groups_all"]); put("pseudo_zero_rule_by_bin", N["
 th = N["thinning"]; put("thinning_zero_rule_range", [min(v["naive"] for v in th.values()), max(v["naive"] for v in th.values())])
 put("thinning_rf_range", [min(v["rf"] for v in th.values()), max(v["rf"] for v in th.values())]); put("thinning_model_max", max(v["zinb"] for v in th.values()))
 p95 = {}
-for fn in glob.glob(os.path.join(E, "*.fitamb.tsv")):
+for fn in [os.path.join(E, f"{k}.fitamb.tsv") for k in ATLAS_NAMES if os.path.exists(os.path.join(E, f"{k}.fitamb.tsv"))]:
     n = os.path.basename(fn).split(".")[0]
-    if n in SKIP: continue
     v = sorted(float(r["pseudo_f_med"]) for r in male_groups(fn, 5) if r["assay"].startswith("10x") or "GEO" in r["assay"])
-    if len(v) >= 20: p95[n] = v[int(0.95 * len(v))]
+    if len(v) >= 10: p95[n] = v[int(0.95 * len(v))]  # same atlases as Figure 2c
 put("atlases_control_p95_below_1pct", [sum(x < 0.01 for x in p95.values()), len(p95)])
 DR = json.load(open(os.path.join(T, "depth_retention.json")))
 put("retained_expY5", [round(100 * DR["total"][1] / DR["total"][0]), DR["total"][0]])
 put("control_p95_by_band_pct", {k: round(100 * v[2], 1) for k, v in DR["band"].items()})
+
+# ---- spike-in recovery of the detection model (loybench; groups with >= 5 expected Y reads, every benchmarked atlas) ----
+rec = {ft: [] for ft in ("0.02", "0.05", "0.1", "0.2")}; nb = 0; atl = []
+for k in ATLAS_NAMES:
+    fn = os.path.join(E, f"{k}.bench.tsv")
+    if not os.path.exists(fn): continue
+    by = {}
+    for r in rows(fn): by.setdefault(r["gid"], {})[(r["scenario"], r["f_true"])] = r
+    used = 0
+    for g in by.values():
+        o = g.get(("observed", "0"))
+        if not o or float(o["expY"]) < 5: continue
+        used += 1
+        for ft in rec:
+            if ("spike", ft) in g:
+                f0 = float(o["zinb"]); f1 = float(g[("spike", ft)]["zinb"])
+                rec[ft].append(100 * (f1 - f0) / max(1e-9, 1 - f0) / float(ft))
+    if used: atl.append(k); nb += used
+q = lambda v, p: sorted(v)[int(p * (len(v) - 1))]
+put("spikein_recovery_pct", {ft: [round(st.median(v), 1), round(q(v, 0.25), 1), round(q(v, 0.75), 1)] for ft, v in rec.items()}, "median, quartiles of recovered / spiked")
+put("spikein_groups_atlases", [nb, len(atl)])
 
 # ---- loss of the chromosome ----
 par = {}

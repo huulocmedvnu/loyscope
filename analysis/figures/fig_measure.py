@@ -4,13 +4,12 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from common import *
 
-NAMES = {"aida": "AIDA", "onek1k_geo": "OneK1K", "iaging": "Immune Aging", "blood": "Indonesia blood", "retina": "Retina/choroid", "tsapiens": "Tabula Sapiens",
-         "ad_mssm": "Brain MSSM", "ad_radc": "Brain RADC", "ad_microglia": "Microglia", "ckd_sn": "Kidney KPMP", "covid": "COVID-19", "dcm": "Heart DCM", "hlca": "Lung HLCA"}
+NAMES = {k: ATLAS_NAMES[k] for k in canonical()}
 fig = make_subplots(rows=2, cols=2, horizontal_spacing=0.2, vertical_spacing=0.2,
                     subplot_titles=("a  Genes that cannot be lost", "b  Sequencing depth halved", "c  Detection model, control genes", "d  Two count matrices of one cohort"))
 bins = [(0, 1), (1, 2), (2, 5), (5, 10), (10, 1e9)]; lab = ["<1", "1-2", "2-5", "5-10", ">10"]
 pn = {b: [] for b in bins}; pm = {b: [] for b in bins}
-for fn in glob.glob(ext("*.fitamb.tsv")):
+for fn in [ext(f"{k}.fitamb.tsv") for k in canonical()]:
     for r in rows(fn):
         if r["sex"] != "male" or r["k"] == "NaN" or not (r["assay"].startswith("10x") or "GEO" in r["assay"]): continue
         e = float(r["mu"]) * float(r["mean_umi"])

@@ -2,7 +2,9 @@
 # writes tables/depth_retention.json and tables/Supplementary_Table_3_depth_retention.tsv
 import csv, glob, os, json, statistics as st
 res = os.environ.get("LOY_RESULTS", "results"); E = os.path.join(res, "extract"); T = os.path.join(res, "tables")
-SKIP = {"onek1k", "retina_lib", "seaad_mtg", "encode_heart"}
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from datasets import EXCLUDE as SKIP
 tot = [0, 0, 0]; per = {}; band = {"1.5-2": [], "2-3": [], "3-5": [], ">=5": []}
 for fn in sorted(glob.glob(os.path.join(E, "*.fitamb.tsv"))):
     ds = os.path.basename(fn).split(".")[0]

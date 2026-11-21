@@ -7,7 +7,7 @@
 //! needs <prefix>.cells.bin/.groups.tsv/.info.txt/.panel.bin/.panel_genes.txt (loyx v2)
 //! writes <prefix>.rf_groups.tsv, <prefix>.bench.tsv, <prefix>.rf_info.txt
 use anyhow::{bail, Result};
-use loyscope::fit;
+use loyscope::fit_bg;
 use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng};
 use rand_distr::{Binomial, Distribution, Poisson};
@@ -280,13 +280,16 @@ fn main() -> Result<()> {
         .filter(|&g| gl[g][3] == "male" && gl[g][4] == "normal" && cells_of[g].len() >= minc)
         .collect();
     eprintln!("male normal groups {}", todo.len());
+    // the detection model uses the absolute ambient rate of the benchmark gene set (sum of the per-gene female rates),
+    // the same rate used to simulate spiked-in cells without Y
+    let bg: f64 = amb.iter().sum();
     let estimate = |ns: &[f32], ys: &[Vec<u16>]| -> (f64, f64, f64, f64) {
         // naive, rf, zinb f, expected Y per intact cell
         let tot: Vec<f64> = ys.iter().map(|r| r.iter().map(|&x| x as f64).sum()).collect();
         let naive = tot.iter().filter(|&&t| t == 0.0).count() as f64 / tot.len() as f64;
         let rf = (0..ns.len()).filter(|&i| rf_call(&ys[i], ns[i])).count() as f64 / ns.len() as f64;
         let nn: Vec<f64> = ns.iter().map(|&x| x as f64).collect();
-        let (f, mu, _) = fit(&nn, &tot);
+        let (f, mu, _) = fit_bg(&nn, &tot, bg);
         let mn = nn.iter().sum::<f64>() / nn.len() as f64;
         (naive, rf, f, mu * mn)
     };
