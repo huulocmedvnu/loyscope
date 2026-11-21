@@ -34,7 +34,8 @@ fn strings(ds: &hdf5::Dataset) -> Result<Vec<String>> {
     if let Ok(v) = ds.read_raw::<VarLenAscii>() {
         return Ok(v.iter().map(|s| s.as_str().to_string()).collect());
     }
-    for n in [256usize] {
+    {
+        let n = 256usize;
         let _ = n;
     }
     let v = ds.read_raw::<FixedAscii<256>>().context("strings")?;
@@ -154,7 +155,7 @@ fn main() -> Result<()> {
         .iter()
         .map(|s| {
             chr.get(s)
-                .map_or(false, |c| c != "chrX" && c != "chrY" && c != "chrM")
+                .is_some_and(|c| c != "chrX" && c != "chrY" && c != "chrM")
         })
         .collect();
     let mut expressed: Vec<usize> = (0..ng).filter(|&g| gsum[g] > 0.0).collect();

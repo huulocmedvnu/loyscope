@@ -34,7 +34,7 @@ impl Bins {
                 if !v.is_empty() {
                     for q in 1..NB - 1 {
                         let t = v[(q * v.len() / (NB - 1)).min(v.len() - 1)];
-                        if c.last().map_or(true, |&l| t > l) {
+                        if c.last().is_none_or(|&l| t > l) {
                             c.push(t);
                         }
                     }

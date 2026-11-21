@@ -212,7 +212,7 @@ fn main() -> Result<()> {
         bin.insert(g, b);
         if chr
             .get(*g)
-            .map_or(false, |c| c != "chrX" && c != "chrY" && c != "chrM")
+            .is_some_and(|c| c != "chrX" && c != "chrY" && c != "chrM")
         {
             bins[b].push(g);
         }

@@ -231,7 +231,7 @@ fn main() -> Result<()> {
         .iter()
         .map(|s| {
             chr.get(s)
-                .map_or(false, |c| c != "chrX" && c != "chrY" && c != "chrM")
+                .is_some_and(|c| c != "chrX" && c != "chrY" && c != "chrM")
         })
         .collect();
     // pass 1: mean CP10k per gene over male normal cells

@@ -62,6 +62,11 @@ blood	CD8-positive, alpha-beta T cell	105	0.195	0.006497	0.01039	False	0.244	0.1
 blood	natural killer cell	101	0.182	0.01849	0.02465	False	0.341	0.02399
 blood	naive thymus-derived CD8-positive, alpha-beta T cell	91	0.040	0.09945	0.1137	False	0.031	0.6532
 blood	memory B cell	101	0.007	0.8596	0.8596	False	-0.031	0.8406
+encode_heart	fibroblast	24	0.720	0.02949	0.1474	False	0.842	0.02699
+encode_heart	lymphocyte	13	-0.516	0.1814	0.4535	False	-1.214	0.1044
+encode_heart	myeloid cell	16	0.097	0.4593	0.7655	False	0.144	0.6517
+encode_heart	endothelial cell	9	0.275	0.7011	0.8764	False	-0.378	0.8171
+encode_heart	cardiomyocyte	37	0.001	0.9735	0.9735	False	0.003	0.943
 iaging	CD14-positive, CD16-negative classical monocyte	94	2.964	0.0004998	0.005747	True	3.012	0.0004998
 iaging	CD14-low, CD16-positive monocyte	86	3.939	0.0004998	0.005747	True	4.067	0.0004998
 iaging	memory regulatory T cell	93	2.469	0.001999	0.01533	True	2.482	0.001499

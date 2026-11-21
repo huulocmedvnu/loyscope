@@ -4,14 +4,14 @@
 #   q = (MSY fragments - b * total fragments) / mean control-bin fragments,  f = 1 - q / q_ref(cell type)
 # with b the female MSY rate per fragment and q_ref pooled over donors aged 35 or younger (including embryonic).
 # Negative control: each of the 20 autosomal control bin sets treated as Y against the mean of the others.
-# Inputs: encode/<acc>.groups_cmp via *.multi.groups_cmp.tsv, *.multi.nuclei.tsv.gz, *.atac.tsv.gz, meta/encode_manifest.tsv
+# Inputs under <results>: encode/<acc>.multi.groups_cmp.tsv, .multi.nuclei.tsv.gz, .atac.tsv.gz; manifest from $MANIFEST
 import csv, gzip, glob, os, sys, json, math
 import numpy as np
 
 ROOT = sys.argv[1] if len(sys.argv) > 1 else "."
 BG = float(os.environ.get("ATAC_BG", "3.951e-4")); NP = 20; NB = 300; MIN_N = 100
 rng = np.random.default_rng(11)
-man = {r[0]: r for r in csv.reader(open(os.path.join(ROOT, "meta/encode_manifest.tsv")), delimiter="\t")}
+man = {r[0]: r for r in csv.reader(open(os.environ.get("MANIFEST", "config/encode_manifest.tsv")), delimiter="\t")}
 def age_of(stage):
     s = stage.split("-")[0]
     return float(s) if s.isdigit() else 0.0  # embryonic -> 0

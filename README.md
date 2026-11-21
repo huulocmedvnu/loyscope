@@ -32,17 +32,23 @@ Twenty pseudo-Y sets are fitted in the same way and must return f close to 0.
 | `loyregroup` | extraction outputs | regroup by any obs column or recompute Y from a gene subset, without the h5ad |
 | `atacy` | ATAC h5ad | per-nucleus chrY (outside PAR) / chrX / total chromatin counts |
 | `obsdump` | h5ad | obs table export |
+| `fragy` | ATAC fragment files | per-barcode total, X and MSY fragment counts, streamed |
+| `encmulti` | ENCODE 10x multiome | RNA records for `loyfit` and chromatin counts (MSY, X, 20 matched autosomal control bin sets) of the same nuclei |
+| `multijoin` | `encmulti` outputs | joins RNA and chromatin of each nucleus; per-group chromatin and RNA estimates and per-nucleus posteriors |
+| `spaty` | Visium HD 8 um bins | experimental: tile-level test for a deficit of MSY reads against X gametologs, with matched autosomal controls |
 
 Matrices are read in row blocks through HDF5 hyperslabs with a prefetching reader thread; memory stays near one block
 plus per-group summaries.
 
 ## Reproducing the study
 
-Requirements: Linux, Rust >= 1.75, HDF5 >= 1.10, curl, Python >= 3.10 with numpy and openpyxl (summary tables only),
+Requirements: Linux or macOS, Rust >= 1.75, HDF5 >= 1.10 (`apt install libhdf5-dev`, or `brew install hdf5` and
+`export HDF5_DIR=$(brew --prefix hdf5)` on macOS), curl, Python >= 3.10 with numpy and openpyxl (summary tables only),
 about 200 GB of free disk at peak (downloads are deleted after extraction).
 
 ```
 cargo build --release
+cargo test --release                # estimator recovery on simulated counts
 bash workflow/run_all.sh          # or run the numbered steps in workflow/ one by one
 ```
 
@@ -54,7 +60,11 @@ Steps:
 4. `03_kidney_geo.sh` kidney matrices of a published LOY study (GSE151302, GSE195460, GSE220289)
 5. `04_seaad_atac.sh` SEA-AD MTG chromatin accessibility
 6. `05_robustness.sh` library-level grouping and single-gene Y set
-7. `06_tables.sh`     summary tables in `results/tables`
+7. `07_encode_multiome.sh` ENCODE multiome libraries in `config/encode_manifest.tsv` (`CHROMATIN=0` for RNA only)
+8. `06_tables.sh`     summary tables in `results/tables`, including the robustness analyses (`analysis/robust_stats.py`)
+
+Figures are drawn from `results/tables` and `results/extract` by the scripts in `analysis/figures` (Plotly with Kaleido).
+The summary tables reported in the manuscript are also kept in `docs/tables`.
 
 Settings (threads, parallel datasets, paths) are in `workflow/config.sh` and can be overridden by environment variables.
 

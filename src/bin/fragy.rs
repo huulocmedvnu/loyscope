@@ -8,15 +8,23 @@ use hdf5::types::{FixedAscii, VarLenAscii, VarLenUnicode};
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
 
-const YSET: &[&str] = &["RPS4Y1", "ZFY", "USP9Y", "DDX3Y", "UTY", "KDM5D", "EIF1AY", "TXLNGY", "NLGN4Y", "PRKY", "TMSB4Y"];
+const YSET: &[&str] = &[
+    "RPS4Y1", "ZFY", "USP9Y", "DDX3Y", "UTY", "KDM5D", "EIF1AY", "TXLNGY", "NLGN4Y", "PRKY", "TMSB4Y",
+];
 
 fn strings(ds: &hdf5::Dataset) -> Result<Vec<String>> {
-    if let Ok(v) = ds.read_raw::<VarLenUnicode>() { return Ok(v.iter().map(|s| s.as_str().to_string()).collect()); }
-    if let Ok(v) = ds.read_raw::<VarLenAscii>() { return Ok(v.iter().map(|s| s.as_str().to_string()).collect()); }
+    if let Ok(v) = ds.read_raw::<VarLenUnicode>() {
+        return Ok(v.iter().map(|s| s.as_str().to_string()).collect());
+    }
+    if let Ok(v) = ds.read_raw::<VarLenAscii>() {
+        return Ok(v.iter().map(|s| s.as_str().to_string()).collect());
+    }
     let v = ds.read_raw::<FixedAscii<256>>().context("strings")?;
     Ok(v.iter().map(|s| s.as_str().to_string()).collect())
 }
-fn msy(start: u64) -> bool { !((10_001..=2_781_479).contains(&start) || (56_887_903..=57_217_415).contains(&start)) }
+fn msy(start: u64) -> bool {
+    !((10_001..=2_781_479).contains(&start) || (56_887_903..=57_217_415).contains(&start))
+}
 
 fn main() -> Result<()> {
     let a: Vec<String> = std::env::args().collect();
@@ -35,7 +43,15 @@ fn main() -> Result<()> {
     let mut rec: HashMap<String, [f64; 5]> = HashMap::new(); // rna_total, rna_y, atac_total, atac_y, atac_x
     for c in 0..bcs.len() {
         let (mut t, mut y) = (0.0, 0.0);
-        for q in ip[c] as usize..ip[c + 1] as usize { let g = ind[q] as usize; if gex[g] { t += data[q] as f64; if isy[g] { y += data[q] as f64; } } }
+        for q in ip[c] as usize..ip[c + 1] as usize {
+            let g = ind[q] as usize;
+            if gex[g] {
+                t += data[q] as f64;
+                if isy[g] {
+                    y += data[q] as f64;
+                }
+            }
+        }
         rec.insert(bcs[c].clone(), [t, y, 0.0, 0.0, 0.0]);
     }
     eprintln!("RNA barcodes {}", rec.len());
@@ -43,18 +59,34 @@ fn main() -> Result<()> {
     let r = BufReader::with_capacity(1 << 22, MultiGzDecoder::new(std::fs::File::open(frag)?));
     let (mut nf, mut hit) = (0u64, 0u64);
     for l in r.lines() {
-        let l = l?; if l.starts_with('#') { continue; }
+        let l = l?;
+        if l.starts_with('#') {
+            continue;
+        }
         let mut it = l.split('\t');
-        let (Some(ch), Some(st), Some(_en), Some(bc)) = (it.next(), it.next(), it.next(), it.next()) else { continue };
+        let (Some(ch), Some(st), Some(_en), Some(bc)) = (it.next(), it.next(), it.next(), it.next()) else {
+            continue;
+        };
         nf += 1;
         if let Some(e) = rec.get_mut(bc) {
-            hit += 1; e[2] += 1.0;
-            if ch == "chrY" { if msy(st.parse().unwrap_or(0)) { e[3] += 1.0; } } else if ch == "chrX" { e[4] += 1.0; }
+            hit += 1;
+            e[2] += 1.0;
+            if ch == "chrY" {
+                if msy(st.parse().unwrap_or(0)) {
+                    e[3] += 1.0;
+                }
+            } else if ch == "chrX" {
+                e[4] += 1.0;
+            }
         }
     }
     eprintln!("fragments {nf}, in RNA barcodes {hit}");
     let mut w = std::io::BufWriter::new(std::fs::File::create(out)?);
     writeln!(w, "barcode\trna_umi\trna_y\tatac_frag\tatac_chrY_msy\tatac_chrX")?;
-    for (b, e) in &rec { if e[2] > 0.0 { writeln!(w, "{b}\t{}\t{}\t{}\t{}\t{}", e[0], e[1], e[2], e[3], e[4])?; } }
+    for (b, e) in &rec {
+        if e[2] > 0.0 {
+            writeln!(w, "{b}\t{}\t{}\t{}\t{}\t{}", e[0], e[1], e[2], e[3], e[4])?;
+        }
+    }
     Ok(())
 }

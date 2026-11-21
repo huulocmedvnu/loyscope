@@ -162,14 +162,14 @@ fn main() -> Result<()> {
     let cls: Vec<u8> = names
         .iter()
         .map(|n| {
-            let t: Vec<&str> = n.split(|c| c == ':' || c == '-' || c == '_').collect();
+            let t: Vec<&str> = n.split([':', '-', '_']).collect();
             if t.len() < 2 {
                 return 0;
             }
             let ch = t[0];
             let st: f64 = t[1].parse().unwrap_or(-1.0);
             if ch == "chrY" || ch == "Y" {
-                if (st >= 10_001.0 && st <= 2_781_479.0) || (st >= 56_887_903.0 && st <= 57_217_415.0) {
+                if (10_001.0..=2_781_479.0).contains(&st) || (56_887_903.0..=57_217_415.0).contains(&st) {
                     0
                 } else {
                     1

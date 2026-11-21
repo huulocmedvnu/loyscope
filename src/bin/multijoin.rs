@@ -9,7 +9,7 @@
 use anyhow::Result;
 use flate2::read::MultiGzDecoder;
 use flate2::{write::GzEncoder, Compression};
-use loy::{fit_amb, ln_gamma};
+use loyscope::{fit_amb, ln_gamma};
 use rayon::prelude::*;
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, BufWriter, Write};
@@ -22,7 +22,9 @@ fn post(y: f64, n: f64, f: f64, mu: f64, k: f64, bg_rate: f64) -> f64 {
     let lam = (bg_rate * n).max(1e-12);
     let l1 = y * lam.ln() - lam - ln_gamma(y + 1.0);
     let mn = mu * n;
-    let l0 = ln_gamma(y + k) - ln_gamma(k) - ln_gamma(y + 1.0) + k * (k / (k + mn)).ln() + y * (mn / (k + mn)).ln();
+    let l0 = ln_gamma(y + k) - ln_gamma(k) - ln_gamma(y + 1.0)
+        + k * (k / (k + mn)).ln()
+        + y * (mn / (k + mn)).ln();
     let (a1, a0) = (f.max(1e-12).ln() + l1, (1.0 - f).max(1e-12).ln() + l0);
     let m = a1.max(a0);
     (a1 - m).exp() / ((a1 - m).exp() + (a0 - m).exp())
@@ -36,43 +38,85 @@ fn main() -> Result<()> {
     let mut atac: HashMap<String, (f64, f64)> = HashMap::new();
     let mut apseudo: HashMap<String, Vec<f64>> = HashMap::new(); // optional pseudo-Y peak sets (columns 5..)
     for l in lines_gz(ap)?.skip(1) {
-        let l = l?; let f: Vec<&str> = l.split('\t').collect();
+        let l = l?;
+        let f: Vec<&str> = l.split('\t').collect();
         atac.insert(f[0].to_string(), (f[1].parse()?, f[2].parse()?));
-        if f.len() > 4 { apseudo.insert(f[0].to_string(), f[4..].iter().map(|x| x.parse().unwrap_or(0.0)).collect()); }
+        if f.len() > 4 {
+            apseudo.insert(
+                f[0].to_string(),
+                f[4..].iter().map(|x| x.parse().unwrap_or(0.0)).collect(),
+            );
+        }
     }
     // RNA cells, groups, obs ids
     let info = std::fs::read_to_string(format!("{rp}.info.txt"))?;
-    let rl: usize = info.lines().find(|l| l.starts_with("record_u32")).unwrap().split(' ').nth(1).unwrap().parse()?;
+    let rl: usize = info
+        .lines()
+        .find(|l| l.starts_with("record_u32"))
+        .unwrap()
+        .split(' ')
+        .nth(1)
+        .unwrap()
+        .parse()?;
     let raw = std::fs::read(format!("{rp}.cells.bin"))?;
-    let v: Vec<u32> = raw.chunks_exact(4).map(|c| u32::from_le_bytes([c[0], c[1], c[2], c[3]])).collect();
+    let v: Vec<u32> = raw
+        .chunks_exact(4)
+        .map(|c| u32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+        .collect();
     drop(raw);
     let nc = v.len() / rl;
-    let gl: Vec<Vec<String>> = std::fs::read_to_string(format!("{rp}.groups.tsv"))?.lines().skip(1)
-        .map(|l| l.split('\t').map(String::from).collect()).collect();
+    let gl: Vec<Vec<String>> = std::fs::read_to_string(format!("{rp}.groups.tsv"))?
+        .lines()
+        .skip(1)
+        .map(|l| l.split('\t').map(String::from).collect())
+        .collect();
     let mut ids: Vec<String> = Vec::with_capacity(nc);
-    for l in lines_gz(&format!("{rp}.obs.tsv.gz"))?.skip(1) { let l = l?; ids.push(l.split('\t').next().unwrap_or("").to_string()); }
+    for l in lines_gz(&format!("{rp}.obs.tsv.gz"))?.skip(1) {
+        let l = l?;
+        ids.push(l.split('\t').next().unwrap_or("").to_string());
+    }
     let mut par: HashMap<usize, (f64, f64, f64)> = HashMap::new();
-    for l in std::fs::read_to_string(format!("{rp}.fitamb.tsv"))?.lines().skip(1) {
+    for l in std::fs::read_to_string(format!("{rp}.fitamb.tsv"))?
+        .lines()
+        .skip(1)
+    {
         let f: Vec<&str> = l.split('\t').collect();
-        if f[16] != "NaN" { par.insert(f[0].parse()?, (f[12].parse()?, f[15].parse()?, f[16].parse()?)); }
+        if f[16] != "NaN" {
+            par.insert(f[0].parse()?, (f[12].parse()?, f[15].parse()?, f[16].parse()?));
+        }
     }
     // background rates from female nuclei: RNA Y per UMI, ATAC chrY per fragment
     let (mut ry, mut rn, mut ay, mut an, mut matched) = (0f64, 0f64, 0f64, 0f64, 0usize);
     let mut joined: Vec<(usize, f64, f64, f64, f64)> = Vec::new(); // cell, N, y, T, Ty (male only)
     for c in 0..nc {
         let g = &gl[v[c * rl] as usize];
-        let Some(&(t, ty)) = atac.get(&ids[c]) else { continue };
+        let Some(&(t, ty)) = atac.get(&ids[c]) else {
+            continue;
+        };
         matched += 1;
         let (n, y) = (v[c * rl + 1] as f64, v[c * rl + 2] as f64);
-        if g[3] == "female" { ry += y; rn += n; ay += ty; an += t; } else if g[3] == "male" && t > 0.0 && n > 0.0 { joined.push((c, n, y, t, ty)); }
+        if g[3] == "female" {
+            ry += y;
+            rn += n;
+            ay += ty;
+            an += t;
+        } else if g[3] == "male" && t > 0.0 && n > 0.0 {
+            joined.push((c, n, y, t, ty));
+        }
     }
     let (mut rna_bg, mut atac_bg) = (ry / rn.max(1.0), ay / an.max(1.0));
     // libraries without female nuclei: background rates supplied from female samples of the same study
-    if let Ok(x) = std::env::var("ATAC_BG") { atac_bg = x.parse()?; }
-    if let Ok(x) = std::env::var("RNA_BG") { rna_bg = x.parse()?; }
+    if let Ok(x) = std::env::var("ATAC_BG") {
+        atac_bg = x.parse()?;
+    }
+    if let Ok(x) = std::env::var("RNA_BG") {
+        rna_bg = x.parse()?;
+    }
     eprintln!("matched {matched}/{nc} RNA nuclei to ATAC; male joined {}; female bg RNA {rna_bg:.3e}/UMI, ATAC {atac_bg:.3e}/fragment", joined.len());
     let mut by: HashMap<usize, Vec<usize>> = HashMap::new();
-    for (i, x) in joined.iter().enumerate() { by.entry(v[x.0 * rl] as usize).or_default().push(i); }
+    for (i, x) in joined.iter().enumerate() {
+        by.entry(v[x.0 * rl] as usize).or_default().push(i);
+    }
     // median male ATAC rate for rho
     let mut rates: Vec<f64> = joined.iter().map(|x| x.4 / x.3).collect();
     rates.sort_by(|a, b| a.partial_cmp(b).unwrap());
@@ -112,13 +156,34 @@ fn main() -> Result<()> {
     }).collect();
     let mut wg = BufWriter::new(std::fs::File::create(format!("{out}.groups_cmp.tsv"))?);
     writeln!(wg, "gid\tcell_type\tdisease\tdonor\tstage\tn\tmean_umi\tf_atac\tf_atac_pseudo\tpost_atac_mean\tf_rna_model\tpost_rna_mean\tnaive_zero\texpY_rna")?;
-    let mut wn = GzEncoder::new(BufWriter::new(std::fs::File::create(format!("{out}.nuclei.tsv.gz"))?), Compression::fast());
-    writeln!(wn, "cell_id\tgid\trna_umi\trna_y\tatac_total\tatac_chrY\tp_atac\tp_rna_model")?;
+    let mut wn = GzEncoder::new(
+        BufWriter::new(std::fs::File::create(format!("{out}.nuclei.tsv.gz"))?),
+        Compression::fast(),
+    );
+    writeln!(
+        wn,
+        "cell_id\tgid\trna_umi\trna_y\tatac_total\tatac_chrY\tp_atac\tp_rna_model"
+    )?;
     let mut tot = [0u64; 8];
-    for (l, nuc, cm) in &res { writeln!(wg, "{l}")?; for x in nuc { writeln!(wn, "{x}")?; } for j in 0..8 { tot[j] += cm[j]; } }
+    for (l, nuc, cm) in &res {
+        writeln!(wg, "{l}")?;
+        for x in nuc {
+            writeln!(wn, "{x}")?;
+        }
+        for j in 0..8 {
+            tot[j] += cm[j];
+        }
+    }
     wn.finish()?;
-    let met = |c: &[u64]| { let (tp, fp, fnn, tn) = (c[0] as f64, c[1] as f64, c[2] as f64, c[3] as f64);
-        format!("TP {tp} FP {fp} FN {fnn} TN {tn} | sensitivity {:.3} specificity {:.4} PPV {:.3}", tp / (tp + fnn), tn / (tn + fp), tp / (tp + fp)) };
+    let met = |c: &[u64]| {
+        let (tp, fp, fnn, tn) = (c[0] as f64, c[1] as f64, c[2] as f64, c[3] as f64);
+        format!(
+            "TP {tp} FP {fp} FN {fnn} TN {tn} | sensitivity {:.3} specificity {:.4} PPV {:.3}",
+            tp / (tp + fnn),
+            tn / (tn + fp),
+            tp / (tp + fp)
+        )
+    };
     let txt = format!("matched {matched} of {nc} RNA nuclei; male nuclei joined {}; groups >= {minn}: {}\nATAC female background {atac_bg:.3e}/fragment, rho {rho_atac:.4}; RNA female background {rna_bg:.3e}/UMI\nnaive zero-Y call vs ATAC truth: {}\nmodel posterior >= 0.5 vs ATAC truth: {}\n",
         joined.len(), res.len(), met(&tot[0..4]), met(&tot[4..8]));
     std::fs::write(format!("{out}.metrics.txt"), &txt)?;
