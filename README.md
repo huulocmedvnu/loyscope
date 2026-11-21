@@ -45,7 +45,7 @@ plus per-group summaries.
 ## Reproducing the study
 
 Requirements: Linux or macOS, Rust >= 1.75, HDF5 >= 1.10 (`apt install libhdf5-dev`, or `brew install hdf5` and
-`export HDF5_DIR=$(brew --prefix hdf5)` on macOS), curl, Python >= 3.10 with numpy and openpyxl (summary tables only),
+`export HDF5_DIR=$(brew --prefix hdf5)` on macOS), curl, librsvg (`rsvg-convert`, for the schematic figures), Python >= 3.10 with the packages in `requirements.txt`,
 about 200 GB of free disk at peak (downloads are deleted after extraction).
 
 ```
