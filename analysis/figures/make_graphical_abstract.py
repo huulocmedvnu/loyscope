@@ -8,105 +8,116 @@ from common import TAB, OUT
 
 N = json.load(open(os.path.join(TAB, "numbers.json")))
 meta = {p[0]: p[1] for p in N["age_slope_meta"]}
+zero_rule = list(N["pseudo_zero_rule_by_bin"].values())[0]
 W, H = 1800, 900
-BLUE, RED, GREEN, PURPLE, ORANGE, INK, GREY = "#636EFA", "#EF553B", "#00CC96", "#AB63FA", "#FFA15A", "#111111", "#8C96A8"
+INK, MUTE, RULE = "#1B1F2A", "#5B6475", "#E3E7EE"
+VAS, VAS_L = "#E4573D", "#FBE3DD"        # vasculature
+MYE, MYE_L = "#4F5BD5", "#E2E5FB"        # myeloid, blood
+NEU, NEU_L = "#14A37F", "#D7F2EA"        # neurons and glia
+TRE = "#9B51E0"                           # regulatory T cells
+XCH, YCH, PAR = "#9AA3B2", "#4F5BD5", "#F5A623"
 FONT = "Arial, Helvetica, sans-serif"
 svg = []; add = svg.append
-def text(x, y, s, size=29, weight="normal", anchor="start", fill=INK, style=""):
-    add(f"<text x='{x:.1f}' y='{y:.1f}' font-family='{FONT}' font-size='{size}' font-weight='{weight}' text-anchor='{anchor}' fill='{fill}' {style}>{s}</text>")
-def line(x1, y1, x2, y2, col=INK, w=3, dash=None, head=False):
-    d = f" stroke-dasharray='{dash}'" if dash else ""; h = " marker-end='url(#ah)'" if head else ""
-    add(f"<line x1='{x1:.1f}' y1='{y1:.1f}' x2='{x2:.1f}' y2='{y2:.1f}' stroke='{col}' stroke-width='{w}'{d}{h}/>")
-def cell(x, y, col, r=22, y_bar=True, reads=0):
-    """cell with chromosome Y drawn as a bar; dashed outline of the bar when Y is lost; red dots are Y reads"""
-    add(f"<circle cx='{x:.1f}' cy='{y:.1f}' r='{r}' fill='{col}' fill-opacity='0.2' stroke='{col}' stroke-width='3'/>")
-    if y_bar: add(f"<rect x='{x - 3.5:.1f}' y='{y - r * 0.55:.1f}' width='7' height='{r * 1.1:.1f}' rx='3' fill='{col}'/>")
-    else: add(f"<rect x='{x - 3.5:.1f}' y='{y - r * 0.55:.1f}' width='7' height='{r * 1.1:.1f}' rx='3' fill='none' stroke='{col}' stroke-width='2' stroke-dasharray='3 3'/>")
-    for j in range(reads): add(f"<circle cx='{x - (reads - 1) * 6 + j * 12:.1f}' cy='{y + r + 14:.1f}' r='4.5' fill='{RED}'/>")
-def bar(x, y0, h, w, col, val, lab, hmax=230, vmax=20):
-    hh = hmax * val / vmax
-    add(f"<rect x='{x}' y='{y0 - hh:.1f}' width='{w}' height='{hh:.1f}' fill='{col}'/>")
-    text(x + w / 2, y0 - hh - 10, f"{val:g}%" if val >= 1 else "0%", 27, anchor="middle")
-    text(x + w / 2, y0 + 34, lab, 26, anchor="middle")
+
+def text(x, y, s, size=27, weight="normal", anchor="start", fill=INK, extra=""):
+    add(f"<text x='{x:.1f}' y='{y:.1f}' font-family='{FONT}' font-size='{size}' font-weight='{weight}' text-anchor='{anchor}' fill='{fill}' {extra}>{s}</text>")
+def path(d, fill="none", stroke=INK, w=3, extra=""):
+    add(f"<path d='{d}' fill='{fill}' stroke='{stroke}' stroke-width='{w}' stroke-linecap='round' stroke-linejoin='round' {extra}/>")
+def circ(x, y, r, fill, stroke, w=3, extra=""):
+    add(f"<circle cx='{x:.1f}' cy='{y:.1f}' r='{r:.1f}' fill='{fill}' stroke='{stroke}' stroke-width='{w}' {extra}/>")
+def chrom_x(x, y, s=1.0, col=XCH):
+    for a in (-24, 24):
+        add(f"<g transform='translate({x:.1f},{y:.1f}) rotate({a}) scale({s:.3f})'><rect x='-6' y='-30' width='12' height='60' rx='6' fill='{col}'/><rect x='-6' y='-30' width='12' height='9' rx='4' fill='{PAR}'/></g>")
+def chrom_y(x, y, s=1.0, col=YCH, lost=False):
+    if lost:
+        add(f"<g transform='translate({x:.1f},{y:.1f}) scale({s:.3f})'><rect x='-6' y='-20' width='12' height='40' rx='6' fill='none' stroke='{col}' stroke-width='2.5' stroke-dasharray='4 4'/></g>")
+    else:
+        add(f"<g transform='translate({x:.1f},{y:.1f}) scale({s:.3f})'><rect x='-6' y='-20' width='12' height='40' rx='6' fill='{col}'/><rect x='-6' y='-20' width='12' height='8' rx='4' fill='{PAR}'/></g>")
+def nucleus(x, y, r, col_fill, col_line, y_lost=False):
+    circ(x, y, r, col_fill, col_line, 3)
+    chrom_x(x - r * 0.28, y, r / 60); chrom_y(x + r * 0.32, y + r * 0.08, r / 60, lost=y_lost)
 
 add(f"<svg xmlns='http://www.w3.org/2000/svg' width='180mm' height='90mm' viewBox='0 0 {W} {H}'>")
-add(f"<defs><marker id='ah' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='4' markerHeight='4' orient='auto'><path d='M0,0 L10,5 L0,10 Z' fill='{GREY}'/></marker></defs>")
+add(f"<defs><marker id='ah' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='5' markerHeight='5' orient='auto'><path d='M0,0 L10,5 L0,10 Z' fill='{MYE}'/></marker></defs>")
 add(f"<rect width='{W}' height='{H}' fill='white'/>")
-for x in (600, 1200): line(x, 40, x, 790, "#DCE1EA", 3)
+for x in (585, 1215): add(f"<line x1='{x}' y1='50' x2='{x}' y2='780' stroke='{RULE}' stroke-width='3'/>")
 
-# ---------------- panel 1: measuring loss ----------------
-x0 = 40
-text(x0, 80, "Measuring loss of Y", 38, "bold")
-text(x0, 122, "in single cells", 38, "bold")
-# intact cells at three depths, and a cell without Y
-for i, (r, k) in enumerate([(30, 3), (22, 1), (16, 0)]):
-    cell(x0 + 60 + i * 110, 230, BLUE, r, True, k)
-text(x0, 312, "intact cells, fewer Y reads (red)", 25)
-text(x0, 342, "at lower sequencing depth", 25)
-cell(x0 + 450, 230, RED, 26, False, 0)
-text(x0 + 450, 312, "Y lost", 25, anchor="middle", fill=RED)
-# control genes: zero-read rule vs model
-pz = N["pseudo_zero_rule_by_bin"]; pm = N["pseudo_model_by_bin"]
-z = list(pz.values())[0]; mz = list(pm.values())[0]
-text(x0, 410, "Genes that cannot be lost,", 28, "bold")
-text(x0, 446, "cells called lost", 28)
-bar(x0 + 70, 655, 0, 110, BLUE, round(z), "zero reads", hmax=160, vmax=60)
-bar(x0 + 300, 655, 0, 110, RED, round(mz), "model", hmax=160, vmax=60)
-text(x0, 738, "PAR1 dosage halved and", 28, fill=RED)
-text(x0, 772, "chromatin agrees in cells called lost", 28, fill=RED)
+# ================= panel 1: measuring =================
+x0 = 45
+text(x0, 88, "A reliable count of", 36, "bold"); text(x0, 130, "cells without Y", 36, "bold")
+nucleus(x0 + 90, 255, 58, "#F4F6FA", "#C9CFDA")
+text(x0 + 90, 352, "Y present,", 25, anchor="middle", fill=MUTE); text(x0 + 90, 381, "no read captured", 25, anchor="middle", fill=MUTE)
+nucleus(x0 + 330, 255, 58, "#F4F6FA", "#C9CFDA", y_lost=True)
+text(x0 + 330, 352, "Y lost", 25, anchor="middle", fill=MUTE); text(x0 + 330, 381, "from the cell", 25, anchor="middle", fill=MUTE)
+text(x0 + 210, 264, "or", 28, "bold", "middle", MUTE)
+text(x0, 440, "Genes that cannot be lost", 26, "bold")
+bx, by = x0 + 20, 640
+for i, (v, col, lab) in enumerate([(zero_rule, "#B8BED0", "zero-read rule"), (0.0, VAS, "this study")]):
+    h = max(135 * v / 60, 3)
+    add(f"<rect x='{bx + i * 230}' y='{by - h:.1f}' width='130' height='{h:.1f}' rx='6' fill='{col}'/>")
+    text(bx + i * 230 + 65, by - h - 14, f"{v:.0f}%", 34, "bold", "middle", INK)
+    text(bx + i * 230 + 65, by + 34, lab, 24, anchor="middle", fill=MUTE)
+text(x0, 728, "Cells called lost carry half", 25); text(x0, 760, "the PAR1 dosage of intact cells", 25)
 
-# ---------------- panel 2: where loss occurs ----------------
-x0 = 640
-text(x0, 80, "Where men lose Y", 38, "bold")
-text(x0, 122, "brains of 468 men", 30)
-# small icons above bars: vessel, microglia, neuron
-def vessel(cx, cy):
-    add(f"<path d='M{cx - 45},{cy - 16} Q{cx},{cy - 30} {cx + 45},{cy - 16}' fill='none' stroke='{RED}' stroke-width='5'/>")
-    add(f"<path d='M{cx - 45},{cy + 16} Q{cx},{cy + 2} {cx + 45},{cy + 16}' fill='none' stroke='{RED}' stroke-width='5'/>")
-def neuron(cx, cy):
-    add(f"<circle cx='{cx}' cy='{cy}' r='13' fill='{GREEN}' fill-opacity='0.3' stroke='{GREEN}' stroke-width='3'/>")
-    for a in (0.4, 1.9, 3.4, 4.9): line(cx + 13 * math.cos(a), cy + 13 * math.sin(a), cx + 36 * math.cos(a), cy + 36 * math.sin(a), GREEN, 3)
-def microglia(cx, cy):
-    add(f"<circle cx='{cx}' cy='{cy}' r='12' fill='{BLUE}' fill-opacity='0.3' stroke='{BLUE}' stroke-width='3'/>")
-    for a in (0.2, 1.3, 2.4, 3.5, 4.6, 5.7): line(cx + 12 * math.cos(a), cy + 12 * math.sin(a), cx + 26 * math.cos(a) + 5, cy + 26 * math.sin(a), BLUE, 2)
-base = 520
-vessel(x0 + 70, 190); vessel(x0 + 200, 190); microglia(x0 + 330, 190); neuron(x0 + 460, 190)
-bar(x0 + 25, base, 0, 90, RED, 17.2, "VLMC")
-bar(x0 + 155, base, 0, 90, RED, 9.6, "endothelium")
-bar(x0 + 285, base, 0, 90, BLUE, 3.2, "microglia")
-bar(x0 + 415, base, 0, 90, GREEN, 0.1, "neurons")
-text(x0, 620, "Rising about 3 points per decade", 28, fill=RED)
-text(x0, 656, "in vascular cells, also in the retina", 28, fill=RED)
-text(x0, 730, f"Blood: regulatory T cells fastest,", 28, fill=PURPLE)
-text(x0, 766, f"+{meta['regulatory T cell']:.1f} points per decade, 4 cohorts", 28, fill=PURPLE)
+# ================= panel 2: where =================
+x0 = 625
+text(x0, 88, "Loss concentrates in", 36, "bold"); text(x0, 130, "vessels, not neurons", 36, "bold")
+bxc, byc = x0 + 165, 305
+path(f"M{bxc - 125},{byc + 20} C{bxc - 140},{byc - 60} {bxc - 70},{byc - 125} {bxc + 5},{byc - 115} C{bxc + 85},{byc - 135} {bxc + 150},{byc - 70} {bxc + 140},{byc} "
+     f"C{bxc + 150},{byc + 55} {bxc + 95},{byc + 80} {bxc + 45},{byc + 70} C{bxc + 20},{byc + 105} {bxc - 30},{byc + 100} {bxc - 45},{byc + 72} C{bxc - 95},{byc + 85} {bxc - 120},{byc + 60} {bxc - 125},{byc + 20} Z",
+     fill="#F7F4F2", stroke="#C9B9B2", w=3)
+for d in (f"M{bxc - 60},{byc - 60} C{bxc - 40},{byc - 20} {bxc - 70},{byc + 10} {bxc - 50},{byc + 50}", f"M{bxc + 20},{byc - 80} C{bxc + 10},{byc - 40} {bxc + 40},{byc - 10} {bxc + 25},{byc + 40}",
+          f"M{bxc + 90},{byc - 40} C{bxc + 70},{byc - 10} {bxc + 95},{byc + 15} {bxc + 80},{byc + 45}"):
+    path(d, stroke="#D9CCC6", w=2.5)
+path(f"M{bxc - 150},{byc + 95} C{bxc - 60},{byc + 40} {bxc - 10},{byc + 10} {bxc + 60},{byc - 30} C{bxc + 95},{byc - 50} {bxc + 120},{byc - 85} {bxc + 150},{byc - 110}", stroke=VAS, w=10)
+path(f"M{bxc - 10},{byc + 12} C{bxc - 5},{byc + 50} {bxc + 20},{byc + 70} {bxc + 30},{byc + 95}", stroke=VAS, w=6)
+for (cx, cy, lost) in ((bxc - 80, byc + 52, False), (bxc + 20, byc - 8, True), (bxc + 105, byc - 66, False)):
+    circ(cx, cy, 10, "white", VAS, 3)
+    if lost: path(f"M{cx - 4},{cy - 4} L{cx + 4},{cy + 4} M{cx + 4},{cy - 4} L{cx - 4},{cy + 4}", stroke=VAS, w=2.5)
+nx, ny = bxc - 30, byc - 58
+circ(nx, ny, 10, NEU_L, NEU, 3)
+for a in (0.3, 1.8, 3.3, 4.6): path(f"M{nx + 10 * math.cos(a):.1f},{ny + 10 * math.sin(a):.1f} L{nx + 28 * math.cos(a):.1f},{ny + 28 * math.sin(a):.1f}", stroke=NEU, w=2.5)
+vx = x0 + 360
+for i, (lab, v, col) in enumerate([("leptomeningeal", "17%", VAS), ("endothelial", "10%", VAS), ("microglia", "3%", MYE), ("neurons, glia", "0%", NEU)]):
+    yy = 222 + i * 60
+    text(vx, yy, v, 34, "bold", fill=col); text(vx + 76, yy - 4, lab, 22)
+text(vx, 470, "brains of 468 men", 22, fill=MUTE)
+ex, ey = x0 + 40, 560
+path(f"M{ex - 34},{ey} C{ex - 14},{ey - 28} {ex + 14},{ey - 28} {ex + 34},{ey} C{ex + 14},{ey + 28} {ex - 14},{ey + 28} {ex - 34},{ey} Z", fill="white", stroke=INK, w=3)
+circ(ex, ey, 11, VAS_L, VAS, 3)
+text(x0 + 95, 552, "Retinal arterioles and pericytes", 25); text(x0 + 95, 584, "lose Y with age", 25)
+dx, dy = x0 + 40, 690
+path(f"M{dx},{dy - 34} C{dx + 20},{dy - 8} {dx + 26},{dy + 6} {dx + 26},{dy + 14} C{dx + 26},{dy + 30} {dx + 14},{dy + 40} {dx},{dy + 40} C{dx - 14},{dy + 40} {dx - 26},{dy + 30} {dx - 26},{dy + 14} C{dx - 26},{dy + 6} {dx - 20},{dy - 8} {dx},{dy - 34} Z", fill="#F6E4FF", stroke=TRE, w=3)
+text(x0 + 95, 686, "Blood: regulatory T cells lose", 25)
+text(x0 + 95, 718, f"Y fastest, +{meta['regulatory T cell']:.1f} points per decade", 25)
 
-# ---------------- panel 3: how loss spreads ----------------
-x0 = 1240
-text(x0, 80, "How loss spreads", 38, "bold")
-text(x0, 122, "same man, several tissues", 30)
-px, py = x0 + 70, 290
-add(f"<circle cx='{px}' cy='{py - 70}' r='24' fill='none' stroke='{INK}' stroke-width='4'/>")
-add(f"<path d='M{px},{py - 46} L{px},{py + 40} M{px - 36},{py - 10} L{px + 36},{py - 10} M{px},{py + 40} L{px - 26},{py + 96} M{px},{py + 40} L{px + 26},{py + 96}' stroke='{INK}' stroke-width='4' fill='none'/>")
-tissues = ["lung", "spleen", "skin"]
-for i, t in enumerate(tissues):
-    yy = 190 + i * 95
-    line(px + 50, py - 10, x0 + 210, yy, GREY, 3, head=True)
-    text(x0 + 222, yy + 9, t, 27)
-    cell(x0 + 345, yy, BLUE, 18, False)            # myeloid: shared loss
-    cell(x0 + 425, yy, RED, 18, i != 1)            # endothelial: loss in one tissue only
-text(x0 + 360, 440, "myeloid", 27, "bold", "end", BLUE); text(x0 + 410, 440, "endothelial", 27, "bold", "start", RED)
-text(x0, 560, "Myeloid loss shared across tissues", 28, fill=BLUE)
-text(x0, 596, "(79% of variance from the donor)", 28, fill=BLUE)
-text(x0, 666, "Endothelial loss arises locally", 28, fill=RED)
-text(x0, 702, "(8% from the donor)", 28, fill=RED)
-text(x0, 766, "Large clones in a minority of men", 28)
+# ================= panel 3: how =================
+x0 = 1255
+text(x0, 88, "Two routes of spread", 36, "bold")
+hx, hy = x0 + 110, 200
+circ(hx, hy, 30, "#F4F6FA", "#C9CFDA", 3)
+path(f"M{hx - 55},{hy + 52} C{hx - 55},{hy + 38} {hx - 40},{hy + 34} {hx},{hy + 34} C{hx + 40},{hy + 34} {hx + 55},{hy + 38} {hx + 55},{hy + 52} L{hx + 50},{hy + 220} L{hx + 22},{hy + 220} L{hx + 18},{hy + 360} L{hx - 18},{hy + 360} L{hx - 22},{hy + 220} L{hx - 50},{hy + 220} Z", fill="#F4F6FA", stroke="#C9CFDA", w=3)
+mx, my = hx, hy + 205
+circ(mx, my, 13, MYE_L, MYE, 3)
+for ox, oy in ((hx - 22, hy + 85), (hx + 20, hy + 112), (hx + 28, hy + 162)):
+    path(f"M{mx},{my - 13} Q{(mx + ox) / 2 - 34},{(my + oy) / 2} {ox},{oy + 11}", stroke=MYE, w=2.5, extra="stroke-dasharray='5 5' marker-end='url(#ah)'")
+    circ(ox, oy, 9, MYE_L, MYE, 2.5)
+text(hx - 22, my + 8, "marrow", 22, anchor="end", fill=MYE)
+rx = x0 + 250
+circ(rx + 12, 255, 12, MYE_L, MYE, 3)
+text(rx + 40, 250, "Myeloid loss", 27, "bold", fill=MYE); text(rx + 40, 282, "shared by all organs", 25)
+text(rx + 40, 314, "of a man (79%)", 25, fill=MUTE)
+path(f"M{rx - 6},430 L{rx + 30},430", stroke=VAS, w=8)
+text(rx + 40, 425, "Endothelial loss", 27, "bold", fill=VAS); text(rx + 40, 457, "arises in each", 25)
+text(rx + 40, 489, "vascular bed (8%)", 25, fill=MUTE)
+text(rx - 10, 640, "Large clones in a", 25); text(rx - 10, 672, "minority of older men", 25)
 
-# ---------------- footer ----------------
-text(W / 2, 862, "Loss of chromosome Y is confined to dividing cells and concentrated in the vasculature", 31, "normal", "middle", INK, "font-style='italic'")
+# ================= footer =================
+add(f"<rect x='0' y='808' width='{W}' height='92' fill='#F5F7FB'/>")
+text(W / 2, 866, "Loss of chromosome Y is confined to dividing cells and concentrated in the vasculature", 32, "bold", "middle", INK)
 add("</svg>")
 p = os.path.join(OUT, "graphical_abstract.svg"); open(p, "w").write("\n".join(svg) + "\n")
-w600 = round(180 / 25.4 * 600)
-png = os.path.join(OUT, "graphical_abstract.png")
+w600 = round(180 / 25.4 * 600); png = os.path.join(OUT, "graphical_abstract.png")
 subprocess.run(["rsvg-convert", "-w", str(w600), "-b", "white", "-o", png, p], check=True)
 subprocess.run(["rsvg-convert", "-f", "pdf", "-o", os.path.join(OUT, "graphical_abstract.pdf"), p], check=True)
 try:
