@@ -78,5 +78,6 @@ fig.update_layout(template="plotly_white", width=900, height=780, font=dict(fami
 fig.update_xaxes(showgrid=False, showline=True, linecolor=BLACK, ticks="outside", tickfont=dict(color=BLACK), title_font=dict(color=BLACK))
 fig.update_yaxes(showgrid=False, showline=True, linecolor=BLACK, ticks="outside", tickfont=dict(color=BLACK), title_font=dict(color=BLACK), zeroline=True, zerolinecolor="#999999")
 for ann in fig.layout.annotations: ann.update(x=0.0 if ann.x < 0.5 else 0.565, xanchor="left", font=dict(size=14, color=BLACK))
-fig.write_image(os.path.join(OUT, "fig1.png"), scale=3); fig.write_html(os.path.join(OUT, "fig1.html"))
+from common import save as _save
+_save(fig, "fig1")
 print("written", OUT)

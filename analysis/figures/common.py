@@ -26,5 +26,9 @@ def panel_titles_left(fig, xs):
     for ann in fig.layout.annotations:
         if ann.text and len(ann.text) > 2 and ann.text[1:3] == "  ": ann.update(x=xs[i], xanchor="left"); i += 1
 def save(fig, name):
-    fig.write_image(os.path.join(OUT, name + ".png"), scale=3); fig.write_html(os.path.join(OUT, name + ".html")); print("written", name)
+    """PNG at 600 dpi for a 180 mm print width, vector PDF, and HTML"""
+    scale = (180 / 25.4 * 600) / fig.layout.width
+    fig.write_image(os.path.join(OUT, name + ".png"), scale=scale)
+    fig.write_image(os.path.join(OUT, name + ".pdf"))
+    fig.write_html(os.path.join(OUT, name + ".html")); print("written", name, f"{round(fig.layout.width * scale)} px wide")
 def leg(x, y, xa="left", ya="top"): return dict(x=x, y=y, xanchor=xa, yanchor=ya, bgcolor="rgba(255,255,255,0)")
