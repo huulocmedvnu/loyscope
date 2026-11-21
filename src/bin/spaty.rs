@@ -21,6 +21,9 @@ const XG: &[&str] = &[
     "RPS4X", "ZFX", "USP9X", "DDX3X", "KDM6A", "KDM5C", "EIF1AX", "TXLNG", "NLGN4X", "PRKX",
 ];
 const NP: usize = 20;
+/// marker sets summed per tile to describe tissue composition (epithelium, stroma and immune cells)
+const EPI: &[&str] = &["EPCAM", "KRT8", "KRT18", "KRT20", "CDH17", "CEACAM5"];
+const STROMA: &[&str] = &["COL1A1", "COL1A2", "VIM", "PTPRC"];
 const NEAR: usize = 20; // controls drawn among the 20 autosomal genes nearest in total count
 const CHUNK: usize = 20_000;
 
@@ -217,6 +220,11 @@ fn main() -> Result<()> {
             member.entry(pick(xg)).or_default().push((s, 1));
         }
     }
+    for (sid, set) in [(NP + 1, EPI), (NP + 2, STROMA)] {
+        for g in set.iter().filter_map(|g| gi.get(g)) {
+            member.entry(*g).or_default().push((sid, 0));
+        }
+    }
     // tiles
     let mut tid: HashMap<(u32, u32), usize> = HashMap::new();
     let mut tkey: Vec<(u32, u32)> = Vec::new();
@@ -233,7 +241,7 @@ fn main() -> Result<()> {
         }
     }
     let nt = tkey.len();
-    let mut cnt = vec![[0f64; 2]; nt * (NP + 1)];
+    let mut cnt = vec![[0f64; 2]; nt * (NP + 3)];
     let mut tn = vec![0f64; nt];
     let mut tbins = vec![0u32; nt];
     for c in 0..nb {
@@ -307,7 +315,10 @@ fn main() -> Result<()> {
     let (y, x, z, q, p) = y_res.unwrap();
     let r_ref = p / (1.0 - p);
     let mut w = BufWriter::new(std::fs::File::create(format!("{out}.tiles.tsv"))?);
-    writeln!(w, "tile_row\ttile_col\tbins\tumi\ty\tx\tf_loss\tz\tq")?;
+    writeln!(
+        w,
+        "tile_row\ttile_col\tbins\tumi\ty\tx\tf_loss\tz\tq\tepi\tstroma"
+    )?;
     for t in 0..nt {
         let f_loss = if x[t] > 0.0 {
             1.0 - (y[t] / x[t] - bg) / (r_ref - bg)
@@ -316,8 +327,18 @@ fn main() -> Result<()> {
         };
         writeln!(
             w,
-            "{}\t{}\t{}\t{}\t{}\t{}\t{:.4}\t{:.3}\t{:.4}",
-            tkey[t].0, tkey[t].1, tbins[t], tn[t], y[t], x[t], f_loss, z[t], q[t]
+            "{}\t{}\t{}\t{}\t{}\t{}\t{:.4}\t{:.3}\t{:.4}\t{}\t{}",
+            tkey[t].0,
+            tkey[t].1,
+            tbins[t],
+            tn[t],
+            y[t],
+            x[t],
+            f_loss,
+            z[t],
+            q[t],
+            cnt[(NP + 1) * nt + t][0],
+            cnt[(NP + 2) * nt + t][0]
         )?;
     }
     let (sy, sx, sn) = (
