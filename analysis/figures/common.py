@@ -1,5 +1,7 @@
 # shared style and readers for manuscript figures (inputs are files written by the Rust tools)
 import csv, os, re, glob, statistics as st
+import plotly.io as pio
+pio.kaleido.scope.mathjax = None  # otherwise kaleido prints a MathJax loading message into PDF exports
 RES = os.environ.get("LOY_RESULTS", "results"); EXT = os.path.join(RES, "extract"); TAB = os.path.join(RES, "tables")
 OUT = os.path.join(RES, "figures"); os.makedirs(OUT, exist_ok=True)
 C = ["#636EFA", "#EF553B", "#00CC96", "#AB63FA", "#FFA15A", "#19D3F3", "#FF6692", "#B6E880", "#FECB52"]
