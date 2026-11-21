@@ -52,7 +52,7 @@ def row_frame(k, col, title, lines_, fig):
     return y
 
 # ---- row 1: depth and detection
-y = row_frame(0, BLUE, "Detection of Y transcripts", ["23 CELLxGENE atlases", f"{N['male_groups_all']:,} male donor and", "cell-type groups", "autosomal control genes"], "Figs. 2, 3")
+y = row_frame(0, BLUE, "Measuring loss in single cells", ["23 CELLxGENE atlases", f"{N['male_groups_all']:,} male donor and", "cell-type groups", "autosomal control genes"], "Fig. 2")
 cy = y + 120
 for i, (r, nY) in enumerate([(22, 3), (14, 1), (9, 0)]):
     x = C2 + 60 + i * 120
@@ -75,7 +75,7 @@ text(bx + 165, by + 54, "expected Y reads per cell", 22, anchor="middle")
 text(bx + 345, by - bh + 20, "zero-read rule", 22, fill=BLUE); text(bx + 345, by - 10, "detection model", 22, fill=RED)
 
 # ---- row 2: physical loss
-y = row_frame(1, RED, "Loss or silencing", ["PAR1 genes, X and Y copies", "AIDA, retina, microglia", "kidney nuclei with", "chromatin fragments"], "Fig. 4")
+y = row_frame(1, RED, "Loss or silencing", ["PAR1 genes, X and Y copies", "AIDA, retina, microglia", "kidney nuclei with", "chromatin fragments"], "Fig. 3")
 cx0, cy = C2 + 40, y + 110
 def chrom(x, yy, lab, col, par=True):
     add(f"<rect x='{x}' y='{yy}' width='130' height='22' rx='11' fill='{col}' fill-opacity='0.3' stroke='{col}' stroke-width='2.5'/>")
@@ -92,7 +92,7 @@ bars(C3 + 30, y + 200, [d["atac"], d["model"], d["naive"], d["trough"]], [GREEN,
 text(C3 + 330, y + 120, "one donor,", 22); text(C3 + 330, y + 150, "cells without Y (%)", 22)
 
 # ---- row 3: published claims and disease contrasts
-y = row_frame(2, GREEN, "Published estimates", ["Europe PMC: 551 records,", "25 single-cell LOY studies", "OneK1K, kidney, microglia", "kidney and heart disease"], "Fig. 5")
+y = row_frame(5, GREEN, "Published estimates", ["Europe PMC: 551 records,", "25 single-cell LOY studies", "OneK1K, kidney, microglia", "kidney and heart disease"], "Fig. 7")
 cy = y + 120
 for i in range(4): cell(C2 + 40 + i * 34, cy - 15, GREEN, 13)
 for i in range(4): cell(C2 + 40 + i * 34, cy + 22, GREEN, 9)
@@ -113,7 +113,7 @@ text(bx + bw + 14, by - 50, "zero-read", 22, fill=BLUE); text(bx + bw + 14, by -
 text(bx + bw / 2, by + 56, "disease minus control (points)", 22, anchor="middle")
 
 # ---- row 4: where LOY occurs
-y = row_frame(3, PURPLE, "Where loss occurs", ["1,526 male donors,", "10,219 groups", "four blood cohorts"], "Fig. 6")
+y = row_frame(2, PURPLE, "Where loss occurs", ["1,526 male donors,", "10,219 groups", "four blood cohorts"], "Fig. 4")
 cy = y + 125
 # neuron, vessel, blood cell pictograms
 nx = C2 + 60
@@ -132,7 +132,7 @@ bars(C3 + 30, y + 205, [17.2, 9.6, 3.2, 0.1], [RED, RED, BLUE, PURPLE], ["VLMC",
 text(C3 + 300, y + 90, "brain, 468 donors,", 22); text(C3 + 300, y + 120, "cells without Y (%)", 22)
 
 # ---- row 5: systemic or local
-y = row_frame(4, ORANGE, "Systemic or local", ["Tabula Sapiens,", "same donor,", "several tissues"], "Fig. 7")
+y = row_frame(3, ORANGE, "Systemic or local", ["Tabula Sapiens,", "same donor,", "several tissues"], "Fig. 5")
 cy = y + 120
 add(f"<circle cx='{C2 + 50}' cy='{cy - 30}' r='16' fill='none' stroke='{INK}' stroke-width='3'/>")
 add(f"<path d='M{C2 + 50},{cy - 14} L{C2 + 50},{cy + 30} M{C2 + 26},{cy} L{C2 + 74},{cy} M{C2 + 50},{cy + 30} L{C2 + 34},{cy + 60} M{C2 + 50},{cy + 30} L{C2 + 66},{cy + 60}' stroke='{INK}' stroke-width='3' fill='none'/>")
@@ -146,7 +146,7 @@ bars(C3 + 30, y + 205, [79, 24, 16, 8], [BLUE, ORANGE, PURPLE, RED], ["myeloid",
 text(C3 + 330, y + 90, "variance explained", 22); text(C3 + 330, y + 120, "by donor (%)", 22)
 
 # ---- row 6: cells without Y
-y = row_frame(5, CYAN, "Cells without Y", ["Immune Aging,", "memory regulatory T cells", "Tabula Sapiens B cells"], "Fig. 8")
+y = row_frame(4, CYAN, "Cells without Y", ["Immune Aging,", "memory regulatory T cells", "Tabula Sapiens B cells"], "Fig. 6")
 cy = y + 120
 cell(C2 + 70, cy, CYAN, 26); text(C2 + 70, cy + 64, "with Y", 22, anchor="middle")
 cell(C2 + 250, cy, CYAN, 26, y_mark=False); text(C2 + 250, cy + 64, "without Y", 22, anchor="middle")
