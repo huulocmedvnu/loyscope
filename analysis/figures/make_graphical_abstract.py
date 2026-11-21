@@ -7,7 +7,8 @@ import json, math, os, subprocess
 from common import TAB, OUT
 
 N = json.load(open(os.path.join(TAB, "numbers.json")))
-meta = {p[0]: p[1] for p in N["age_slope_meta"]}
+import csv
+meta = {r["cell_class"]: float(r["slope_per_decade"]) for r in csv.DictReader(open(os.path.join(os.environ.get("LOY_RESULTS", "results"), "tables", "robust_meta.tsv")), delimiter="\t")}
 zero_rule = list(N["pseudo_zero_rule_by_bin"].values())[0]
 W, H = 1800, 900
 INK, MUTE, RULE = "#1B1F2A", "#5B6475", "#E3E7EE"
@@ -88,8 +89,8 @@ circ(ex, ey, 11, VAS_L, VAS, 3)
 text(x0 + 95, 552, "Retinal arterioles and pericytes", 25); text(x0 + 95, 584, "lose Y with age", 25)
 dx, dy = x0 + 40, 690
 path(f"M{dx},{dy - 34} C{dx + 20},{dy - 8} {dx + 26},{dy + 6} {dx + 26},{dy + 14} C{dx + 26},{dy + 30} {dx + 14},{dy + 40} {dx},{dy + 40} C{dx - 14},{dy + 40} {dx - 26},{dy + 30} {dx - 26},{dy + 14} C{dx - 26},{dy + 6} {dx - 20},{dy - 8} {dx},{dy - 34} Z", fill="#F6E4FF", stroke=TRE, w=3)
-text(x0 + 95, 686, "Blood: regulatory T cells lose", 25)
-text(x0 + 95, 718, f"Y fastest, +{meta['regulatory T cell']:.1f} points per decade", 25)
+text(x0 + 95, 686, "Blood: regulatory T cells lose Y", 25)
+text(x0 + 95, 718, f"in four cohorts, +{meta['regulatory T cell']:.1f} points per decade", 25)
 
 # ================= panel 3: how =================
 x0 = 1255
@@ -114,7 +115,8 @@ text(rx - 10, 640, "Large clones in a", 25); text(rx - 10, 672, "minority of old
 
 # ================= footer =================
 add(f"<rect x='0' y='808' width='{W}' height='92' fill='#F5F7FB'/>")
-text(W / 2, 866, "Loss of chromosome Y is confined to dividing cells and concentrated in the vasculature", 32, "bold", "middle", INK)
+text(W / 2, 850, "Loss of chromosome Y is confined to dividing cells and concentrated in the vasculature", 30, "bold", "middle", INK)
+text(W / 2, 886, "9.6 million cells   •   2,235 men   •   23 organs   •   239 cell types   •   33 diseases   •   23 atlases", 22, "normal", "middle", MUTE)
 add("</svg>")
 p = os.path.join(OUT, "graphical_abstract.svg"); open(p, "w").write("\n".join(svg) + "\n")
 w600 = round(180 / 25.4 * 600); png = os.path.join(OUT, "graphical_abstract.png")

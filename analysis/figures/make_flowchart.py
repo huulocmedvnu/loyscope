@@ -52,7 +52,7 @@ def row_frame(k, col, title, lines_, fig):
     return y
 
 # ---- row 1: depth and detection
-y = row_frame(0, BLUE, "Measuring loss in single cells", ["23 CELLxGENE atlases", f"{N['male_groups_all']:,} male donor and", "cell-type groups", "autosomal control genes"], "Fig. 2")
+y = row_frame(0, BLUE, "Measuring loss in single cells", ["23 public atlases", "9.6 million cells, 2,235 men", "23 organs, 33 diseases", f"{N['male_groups_all']:,} donor-cell-type groups"], "Fig. 2")
 cy = y + 120
 for i, (r, nY) in enumerate([(22, 3), (14, 1), (9, 0)]):
     x = C2 + 60 + i * 120
@@ -105,7 +105,7 @@ bx, by, bw = C3 + 170, y + 185, 260
 xs_ = lambda v: bx + bw * (v + 5) / 15
 line(xs_(0), by - 140, xs_(0), by, GREY, 2, "5 4"); line(bx, by, bx + bw, by, INK, 2.5)
 for v in (-5, 0, 5, 10): text(xs_(v), by + 28, f"{v}", 21, anchor="middle")
-for i, (lab, a, b) in enumerate([("kidney CKD", 6.6, 0.1), ("kidney AKI", -3.8, -2.3), ("heart DCM", 5.4, 2.0)]):
+for i, (lab, a, b) in enumerate([("kidney CKD", 6.6, 1.2), ("kidney AKI", -3.7, -2.1), ("heart DCM", 5.4, 0.6)]):
     yy = by - 115 + i * 38
     text(bx - 14, yy + 8, lab, 22, anchor="end")
     add(f"<circle cx='{xs_(a):.1f}' cy='{yy}' r='8' fill='{BLUE}'/>"); add(f"<circle cx='{xs_(b):.1f}' cy='{yy}' r='8' fill='{RED}'/>")
