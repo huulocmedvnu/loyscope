@@ -35,7 +35,7 @@ CLS = [("classical monocyte", lambda c: ("CD14-positive" in c and "CD16-positive
        ("non-classical monocyte", lambda c: "CD16-positive" in c and "monocyte" in c), ("NK cell", lambda c: "natural killer" in c and "T cell" not in c),
        ("regulatory T cell", lambda c: "regulatory T" in c), ("naive B cell", lambda c: c == "naive B cell"), ("memory B cell", lambda c: "memory B cell" in c),
        ("CD4 T cell", lambda c: "CD4-positive" in c and "regulatory" not in c), ("CD8 T cell", lambda c: "CD8-positive" in c and "regulatory" not in c)]
-cohorts = [("OneK1K", ext("onek1k_geo.fit.tsv")), ("AIDA", ext("aida.fit.tsv")), ("Immune Aging", ext("iaging.fit.tsv")), ("PBMC India", ext("blood.fit.tsv"))]
+cohorts = [("OneK1K", ext("onek1k_geo.fit.tsv")), ("AIDA", ext("aida.fit.tsv")), ("Immune Aging", ext("iaging.fit.tsv")), ("Indonesia blood", ext("blood.fit.tsv"))]
 pooled = []
 for cl, fnc in CLS:
     est = []

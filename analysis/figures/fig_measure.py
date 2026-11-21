@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from common import *
 
-NAMES = {"aida": "AIDA", "onek1k_geo": "OneK1K", "iaging": "Immune Aging", "blood": "PBMC India", "retina": "Retina/choroid", "tsapiens": "Tabula Sapiens",
+NAMES = {"aida": "AIDA", "onek1k_geo": "OneK1K", "iaging": "Immune Aging", "blood": "Indonesia blood", "retina": "Retina/choroid", "tsapiens": "Tabula Sapiens",
          "ad_mssm": "Brain MSSM", "ad_radc": "Brain RADC", "ad_microglia": "Microglia", "ckd_sn": "Kidney KPMP", "covid": "COVID-19", "dcm": "Heart DCM", "hlca": "Lung HLCA"}
 fig = make_subplots(rows=2, cols=2, horizontal_spacing=0.2, vertical_spacing=0.2,
                     subplot_titles=("a  Genes that cannot be lost", "b  Sequencing depth halved", "c  Detection model, control genes", "d  Two count matrices of one cohort"))

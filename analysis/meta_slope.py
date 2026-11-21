@@ -14,7 +14,7 @@ CLS = [("classical monocyte", lambda c: ("CD14-positive" in c and "CD16-positive
        ("memory B cell", lambda c: "memory B cell" in c),
        ("CD4 T cell", lambda c: "CD4-positive" in c and "regulatory" not in c),
        ("CD8 T cell", lambda c: "CD8-positive" in c and "regulatory" not in c)]
-cohorts = [("OneK1K (GEO)", os.path.join(EXT, "onek1k_geo.fit.tsv")), ("AIDA", os.path.join(EXT, "aida.fit.tsv")), ("Immune Aging", os.path.join(EXT, "iaging.fit.tsv")), ("PBMC India", os.path.join(EXT, "blood.fit.tsv"))]
+cohorts = [("OneK1K (GEO)", os.path.join(EXT, "onek1k_geo.fit.tsv")), ("AIDA", os.path.join(EXT, "aida.fit.tsv")), ("Immune Aging", os.path.join(EXT, "iaging.fit.tsv")), ("Indonesia blood", os.path.join(EXT, "blood.fit.tsv"))]
 thr = 1.5
 data = {}
 for name, fn in cohorts:
