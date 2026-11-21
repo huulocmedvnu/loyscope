@@ -43,7 +43,10 @@ fn main() -> Result<()> {
     let npg = pg.len();
     // fit parameters per gid
     let mut par: HashMap<usize, (f64, f64, f64)> = HashMap::new();
-    for l in std::fs::read_to_string(format!("{pre}.fit.tsv"))?.lines().skip(1) {
+    for l in std::fs::read_to_string(format!("{pre}.fitamb.tsv"))?
+        .lines()
+        .skip(1)
+    {
         let f: Vec<&str> = l.split('\t').collect();
         if f[16] == "NaN" {
             continue;

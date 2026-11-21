@@ -9,7 +9,7 @@
 use anyhow::Result;
 use flate2::read::MultiGzDecoder;
 use flate2::{write::GzEncoder, Compression};
-use loyscope::{fit_amb, ln_gamma};
+use loyscope::{fit_bg, ln_gamma};
 use rayon::prelude::*;
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, BufWriter, Write};
@@ -117,19 +117,34 @@ fn main() -> Result<()> {
     for (i, x) in joined.iter().enumerate() {
         by.entry(v[x.0 * rl] as usize).or_default().push(i);
     }
-    // median male ATAC rate for rho
-    let mut rates: Vec<f64> = joined.iter().map(|x| x.4 / x.3).collect();
-    rates.sort_by(|a, b| a.partial_cmp(b).unwrap());
-    let rho_atac = atac_bg / rates[rates.len() / 2].max(1e-12);
+    // absolute background rates: MSY fragments at the female rate per fragment; for each autosomal control peak set the
+    // same contamination fraction times its pooled rate in male nuclei
+    let (tot_t, tot_y): (f64, f64) = joined.iter().fold((0.0, 0.0), |a, x| (a.0 + x.3, a.1 + x.4));
+    let cfrac = atac_bg / (tot_y / tot_t).max(1e-300);
+    let np_all = joined
+        .first()
+        .and_then(|x| apseudo.get(&ids[x.0]))
+        .map_or(0, |v| v.len());
+    let pseudo_bg: Vec<f64> = (0..np_all)
+        .map(|j| {
+            cfrac
+                * joined
+                    .iter()
+                    .map(|x| apseudo.get(&ids[x.0]).map_or(0.0, |v| v[j]))
+                    .sum::<f64>()
+                / tot_t
+        })
+        .collect();
+    let rho_atac = cfrac; // reported as the contamination fraction implied by female nuclei
     let gids: Vec<usize> = by.keys().copied().filter(|g| by[g].len() >= minn).collect();
     let res: Vec<(String, Vec<String>, [u64; 8])> = gids.par_iter().map(|&g| {
         let idx = &by[&g];
         let t: Vec<f64> = idx.iter().map(|&i| joined[i].3).collect();
         let ty: Vec<f64> = idx.iter().map(|&i| joined[i].4).collect();
-        let (fa, ma, ka) = fit_amb(&t, &ty, rho_atac);
+        let (fa, ma, ka) = fit_bg(&t, &ty, atac_bg);
         // ATAC pseudo-Y control: same model on autosomal peak sets matched to chrY peaks (true f = 0)
         let np = idx.first().and_then(|&i| apseudo.get(&ids[joined[i].0])).map_or(0, |v| v.len());
-        let mut pf: Vec<f64> = (0..np).map(|j| { let pj: Vec<f64> = idx.iter().map(|&i| apseudo[&ids[joined[i].0]][j]).collect(); fit_amb(&t, &pj, rho_atac).0 }).collect();
+        let mut pf: Vec<f64> = (0..np).map(|j| { let pj: Vec<f64> = idx.iter().map(|&i| apseudo[&ids[joined[i].0]][j]).collect(); fit_bg(&t, &pj, pseudo_bg[j]).0 }).collect();
         pf.sort_by(|a, b| a.partial_cmp(b).unwrap());
         let fa_pseudo = if pf.is_empty() { f64::NAN } else { pf[pf.len() / 2] };
         let (fr, mr, kr) = par.get(&g).copied().unwrap_or((f64::NAN, f64::NAN, f64::NAN));
@@ -184,7 +199,7 @@ fn main() -> Result<()> {
             tp / (tp + fp)
         )
     };
-    let txt = format!("matched {matched} of {nc} RNA nuclei; male nuclei joined {}; groups >= {minn}: {}\nATAC female background {atac_bg:.3e}/fragment, rho {rho_atac:.4}; RNA female background {rna_bg:.3e}/UMI\nnaive zero-Y call vs ATAC truth: {}\nmodel posterior >= 0.5 vs ATAC truth: {}\n",
+    let txt = format!("matched {matched} of {nc} RNA nuclei; male nuclei joined {}; groups >= {minn}: {}\nATAC female background {atac_bg:.3e}/fragment, contamination fraction {rho_atac:.4}; RNA female background {rna_bg:.3e}/UMI\nnaive zero-Y call vs ATAC truth: {}\nmodel posterior >= 0.5 vs ATAC truth: {}\n",
         joined.len(), res.len(), met(&tot[0..4]), met(&tot[4..8]));
     std::fs::write(format!("{out}.metrics.txt"), &txt)?;
     eprint!("{txt}");

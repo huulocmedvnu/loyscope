@@ -3,7 +3,7 @@
 //! usage: loyfit <prefix> [min_cells=50] [n_boot=200]   (reads <prefix>.groups.tsv, .cells.bin, .info.txt)
 //! writes <prefix>.fit.tsv
 use anyhow::Result;
-use loyscope::fit_amb;
+use loyscope::{fit_amb, fit_bg};
 use rand::{Rng, SeedableRng};
 use rand_xoshiro::Xoshiro256PlusPlus;
 use rayon::prelude::*;
@@ -148,40 +148,71 @@ fn main() -> Result<()> {
                 && (gl[g][3] == "male" || gl[g][3] == "female")
         })
         .collect();
-    // ambient (LOY_AMBIENT=1): rho = female Y rate per UMI / median male intact rate from a first-pass fit
-    let ambient = std::env::var("LOY_AMBIENT").is_ok();
+    // ambient, LOY_AMBIENT=1 (main model): cells without Y receive soup reads at an absolute rate per UMI,
+    // bg_j = c * s_j, with s_j the pooled rate of gene set j over all cells of the dataset (soup composition) and
+    // c = b_Y / s_Y the contamination fraction implied by the Y rate b_Y of female cells; LOY_BG_SCALE multiplies c.
+    // LOY_AMBIENT=rel (alternative parameterisation, kept for comparison): rate rho * mu * N with rho = b_Y / median male mu.
+    let mode = std::env::var("LOY_AMBIENT").unwrap_or_default();
+    let ambient = !mode.is_empty();
+    let absolute = ambient && mode != "rel";
+    let scale: f64 = std::env::var("LOY_BG_SCALE")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(1.0);
     let mut rho = 0.0;
+    let mut bgs = vec![0f64; np + 1];
     if ambient {
         let (mut fy, mut fnn) = (0f64, 0f64);
+        let mut pooled = vec![0f64; np + 1];
+        let mut ntot = 0f64;
         for c in 0..nc {
-            if gl[v[c * rl] as usize][3] == "female" {
+            let sex = &gl[v[c * rl] as usize][3];
+            if sex != "male" && sex != "female" {
+                continue;
+            }
+            ntot += v[c * rl + 1] as f64;
+            for (j, p) in pooled.iter_mut().enumerate() {
+                *p += v[c * rl + 2 + j] as f64;
+            }
+            if sex == "female" {
                 fy += v[c * rl + 2] as f64;
                 fnn += v[c * rl + 1] as f64;
             }
         }
-        let mut mus: Vec<f64> = todo
-            .par_iter()
-            .filter(|&&g| gl[g][3] == "male")
-            .filter_map(|&g| {
-                let cs = &cells[g];
-                let n: Vec<f64> = cs.iter().map(|&c| v[c * rl + 1] as f64).collect();
-                let y: Vec<f64> = cs.iter().map(|&c| v[c * rl + 2] as f64).collect();
-                let (_, mu, k) = fit(&n, &y);
-                if k.is_nan() {
-                    None
-                } else {
-                    Some(mu)
-                }
-            })
-            .collect();
-        mus.sort_by(|a, b| a.partial_cmp(b).unwrap());
-        if !mus.is_empty() && fnn > 0.0 {
-            rho = (fy / fnn) / mus[mus.len() / 2];
+        let b_y = fy / fnn.max(1.0);
+        if absolute {
+            let cfrac = scale * b_y / (pooled[0] / ntot).max(1e-300);
+            for j in 0..=np {
+                bgs[j] = cfrac * pooled[j] / ntot;
+            }
+            eprintln!("ambient absolute: female Y rate {b_y:.3e}, contamination fraction {cfrac:.4e} (scale {scale})");
+        } else {
+            let mut mus: Vec<f64> = todo
+                .par_iter()
+                .filter(|&&g| gl[g][3] == "male")
+                .filter_map(|&g| {
+                    let cs = &cells[g];
+                    let n: Vec<f64> = cs.iter().map(|&c| v[c * rl + 1] as f64).collect();
+                    let y: Vec<f64> = cs.iter().map(|&c| v[c * rl + 2] as f64).collect();
+                    let (_, mu, k) = fit(&n, &y);
+                    if k.is_nan() {
+                        None
+                    } else {
+                        Some(mu)
+                    }
+                })
+                .collect();
+            mus.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            if !mus.is_empty() && fnn > 0.0 {
+                rho = b_y / mus[mus.len() / 2];
+            }
+            eprintln!("ambient relative rho {rho:.4e} (female rate {b_y:.3e})");
         }
-        eprintln!("ambient rho {rho:.4e} (female rate {:.3e})", fy / fnn.max(1.0));
     }
-    let fitx = |n: &[f64], y: &[f64]| -> (f64, f64, f64) {
-        if ambient {
+    let fitx = |n: &[f64], y: &[f64], j: usize| -> (f64, f64, f64) {
+        if absolute {
+            fit_bg(n, y, bgs[j])
+        } else if ambient {
             fit_amb(n, y, rho)
         } else {
             fit(n, y)
@@ -193,7 +224,7 @@ fn main() -> Result<()> {
         let col = |j: usize| -> Vec<f64> { cs.iter().map(|&c| v[c * rl + 2 + j] as f64).collect() };
         let y = col(0);
         let naive = y.iter().filter(|&&x| x == 0.0).count() as f64 / y.len() as f64;
-        let (f, mu, k) = fitx(&n, &y);
+        let (f, mu, k) = fitx(&n, &y, 0);
         let male = gl[g][3] == "male";
         let (mut lo, mut hi) = (f64::NAN, f64::NAN);
         let (mut pf_med, mut pf_max, mut pn_med) = (f64::NAN, f64::NAN, f64::NAN);
@@ -203,17 +234,28 @@ fn main() -> Result<()> {
             let mut bs: Vec<f64> = (0..nboot).map(|_| {
                 let idx: Vec<usize> = (0..n.len()).map(|_| rng.gen_range(0..n.len())).collect();
                 let nn: Vec<f64> = idx.iter().map(|&i| n[i]).collect(); let yy: Vec<f64> = idx.iter().map(|&i| y[i]).collect();
-                if yy.iter().all(|&x| x == 0.0) { 1.0 } else if ambient { loyscope::em_amb(&nn, &yy, kk, rho).0 } else { em(&nn, &yy, kk).0 }
+                if yy.iter().all(|&x| x == 0.0) { 1.0 } else if absolute { loyscope::em_bg(&nn, &yy, kk, bgs[0]).0 } else if ambient { loyscope::em_amb(&nn, &yy, kk, rho).0 } else { em(&nn, &yy, kk).0 }
             }).collect();
             bs.sort_by(|a, b| a.partial_cmp(b).unwrap()); lo = bs[(nboot as f64 * 0.025) as usize]; hi = bs[((nboot as f64 * 0.975) as usize).min(nboot - 1)];
             let mut pf: Vec<f64> = Vec::new(); let mut pn: Vec<f64> = Vec::new();
-            for j in 1..=np { let p = col(j); pn.push(p.iter().filter(|&&x| x == 0.0).count() as f64 / p.len() as f64); pf.push(fitx(&n, &p).0); }
+            for j in 1..=np { let p = col(j); pn.push(p.iter().filter(|&&x| x == 0.0).count() as f64 / p.len() as f64); pf.push(fitx(&n, &p, j).0); }
             pf_max = pf.iter().cloned().fold(f64::NEG_INFINITY, f64::max); pf_med = median(&mut pf); pn_med = median(&mut pn);
         }
         let mean_n = n.iter().sum::<f64>() / n.len() as f64;
         format!("{}\t{}\t{mean_n:.0}\t{naive:.4}\t{f:.4}\t{lo:.4}\t{hi:.4}\t{mu:.3e}\t{k}\t{pn_med:.4}\t{pf_med:.4}\t{pf_max:.4}", gl[g][..9].join("\t"), cs.len())
     }).collect();
-    let mut w = std::fs::File::create(format!("{pre}.{}.tsv", if ambient { "fitamb" } else { "fit" }))?;
+    let suffix = if absolute {
+        if scale == 1.0 {
+            "fitamb".to_string()
+        } else {
+            format!("fitamb_x{scale}")
+        }
+    } else if ambient {
+        "fitrel".to_string()
+    } else {
+        "fit".to_string()
+    };
+    let mut w = std::fs::File::create(format!("{pre}.{suffix}.tsv"))?;
     writeln!(w, "gid\tcell_type\ttissue\tsex\tdisease\tdonor\tstage\tassay\tsuspension\tn\tmean_umi\tnaive_zero\tf\tf_lo\tf_hi\tmu\tk\tpseudo_naive_med\tpseudo_f_med\tpseudo_f_max")?;
     for r in res {
         writeln!(w, "{r}")?;

@@ -21,7 +21,7 @@ for a in ["aida", "retina", "covid", "hlca", "tsapiens"]:
     th[a] = {m: round(st.median(100 * (float(g["thin0.5"][m]) - float(g["observed"][m])) for g in by.values() if "thin0.5" in g and float(g["observed"]["expY"]) >= 2), 2) for m in ("naive", "rf", "zinb")}
     th[a]["groups"] = len(by)
 N["thinning"] = th
-N["rf_accuracy"] = {a: open(ext(f"../../out/{a}.rf_info.txt")).read().split("test_accuracy ")[1].split()[0] for a in ["aida", "retina"] if os.path.exists(ext(f"../../out/{a}.rf_info.txt"))}
+N["rf_accuracy"] = {a: open(ext(f"{a}.rf_info.txt")).read().split("test_accuracy ")[1].split()[0] for a in ["aida", "retina"] if os.path.exists(ext(f"{a}.rf_info.txt"))}
 json.dump(N, open(os.path.join(TAB, "numbers.json"), "w"), indent=1); print(json.dumps(N, indent=1))
 # published-claim comparison (cell-weighted, expected Y >= 1.5) and disease contrasts (same code as Figure 4)
 def wmean(fn, sel, key):
@@ -37,7 +37,7 @@ N["published_comparison"] = {k: {"zero_read": wmean(f, s, "naive"), "model": wme
 R = [r for r in rows(ext("onek1k_geo.fitamb.tsv")) if r["sex"] == "male" and r["k"] != "NaN" and r["cell_type"] == "CD14-positive monocyte" and float(r["mu"]) * float(r["mean_umi"]) >= 1.5]
 N["onek1k_cd14_donor_median_model"] = round(100 * st.median(max(0.0, float(r["f"]) - float(r["pseudo_f_med"])) for r in R), 1)
 N["onek1k_cd14_donors"] = len({r["donor"] for r in R})
-N["age_slope_meta"] = json.load(open(os.path.join(TAB, "age_slope_meta.json")))
+N["age_slope_meta"] = rows(os.path.join(TAB, "robust_meta.tsv"))
 N["dn4"] = json.load(open(os.path.join(TAB, "dn4_estimates.json")))
 json.dump(N, open(os.path.join(TAB, "numbers.json"), "w"), indent=1)
 print(json.dumps({k: N[k] for k in ["published_comparison", "onek1k_cd14_donor_median_model", "onek1k_cd14_donors", "dn4"]}, indent=1))

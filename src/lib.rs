@@ -170,6 +170,84 @@ pub fn fit_amb(n: &[f64], y: &[f64], rho: f64) -> (f64, f64, f64) {
     (best.0, best.1, best.2)
 }
 
+/// EM with an absolute ambient rate: cells without Y have y ~ Pois(bg * N), intact cells y ~ NB(mu N, k).
+/// `bg` is the ambient rate per UMI of the gene set (contamination fraction times the share of the set in the soup),
+/// fixed per dataset and independent of the expression rate of the group. Returns (f, mu, loglik).
+pub fn em_bg(n: &[f64], y: &[f64], k: f64, bg: f64) -> (f64, f64, f64) {
+    if bg <= 0.0 {
+        return em(n, y, k);
+    }
+    let m = n.len() as f64;
+    let mut f = (y.iter().filter(|&&v| v == 0.0).count() as f64 / m * 0.5).max(1e-4);
+    let mut mu = y.iter().sum::<f64>() / n.iter().sum::<f64>().max(1.0) / (1.0 - f);
+    if mu <= 0.0 {
+        return (1.0, 0.0, 0.0);
+    }
+    let lgk = ln_gamma(k);
+    let lg1: Vec<f64> = y.iter().map(|&v| ln_gamma(v + 1.0)).collect();
+    let lgyk: Vec<f64> = y.iter().map(|&v| ln_gamma(v + k)).collect();
+    let lp: Vec<f64> = (0..n.len())
+        .map(|i| {
+            let lam = bg * n[i];
+            y[i] * lam.ln() - lam - lg1[i]
+        })
+        .collect();
+    let lnb = |mu: f64, i: usize| -> f64 {
+        let mn = mu * n[i];
+        lgyk[i] - lgk - lg1[i] + k * (k / (k + mn)).ln() + y[i] * (mn / (k + mn)).ln()
+    };
+    let mut tau = vec![0f64; n.len()];
+    for _ in 0..500 {
+        let (fo, muo) = (f, mu);
+        let mut st = 0.0;
+        for i in 0..n.len() {
+            let a1 = f.ln() + lp[i];
+            let a0 = (1.0 - f).ln() + lnb(mu, i);
+            let mx = a1.max(a0);
+            tau[i] = (a1 - mx).exp() / ((a1 - mx).exp() + (a0 - mx).exp());
+            st += tau[i];
+        }
+        f = (st / m).clamp(1e-9, 1.0 - 1e-9);
+        for _ in 0..5 {
+            // NB part only: the ambient rate does not depend on mu
+            let (mut a, mut b) = (0.0, 0.0);
+            for i in 0..n.len() {
+                let w = 1.0 - tau[i];
+                a += w * y[i];
+                b += w * (y[i] + k) * n[i] / (k + mu * n[i]);
+            }
+            if b > 0.0 && a > 0.0 {
+                mu = a / b;
+            }
+        }
+        if (f - fo).abs() < 1e-7 && ((mu - muo) / muo).abs() < 1e-7 {
+            break;
+        }
+    }
+    let ll: f64 = (0..n.len())
+        .map(|i| {
+            let a1 = f.ln() + lp[i];
+            let a0 = (1.0 - f).ln() + lnb(mu, i);
+            let mx = a1.max(a0);
+            mx + ((a1 - mx).exp() + (a0 - mx).exp()).ln()
+        })
+        .sum();
+    (f, mu, ll)
+}
+pub fn fit_bg(n: &[f64], y: &[f64], bg: f64) -> (f64, f64, f64) {
+    if y.iter().all(|&v| v == 0.0) {
+        return (1.0, 0.0, f64::NAN);
+    }
+    let mut best = (f64::NAN, 0.0, 0.0, f64::NEG_INFINITY);
+    for &k in KGRID {
+        let (f, mu, ll) = em_bg(n, y, k, bg);
+        if ll > best.3 {
+            best = (f, mu, k, ll);
+        }
+    }
+    (best.0, best.1, best.2)
+}
+
 /// A block of CSR rows: (first row, local indptr, column indices, values).
 pub type Chunk = (usize, Vec<usize>, Vec<u32>, Vec<f32>);
 /// Prefetching CSR reader: a dedicated thread reads and decompresses the requested row ranges from the HDF5 file

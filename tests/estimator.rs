@@ -82,3 +82,25 @@ fn row_ranges_cover_all_rows() {
     assert_eq!(r.iter().map(|(a, b)| b - a).sum::<usize>(), 1003);
     assert_eq!(row_ranges(1000, 100, 3).len(), 4);
 }
+
+#[test]
+fn absolute_ambient_rate_is_independent_of_group_expression() {
+    // two groups with the same soup rate but threefold different intact expression
+    for &mu in &[5e-4, 1.5e-3] {
+        let mut rng = Xoshiro256PlusPlus::seed_from_u64(15);
+        let bg = 5e-5;
+        let (mut n, mut y) = (Vec::new(), Vec::new());
+        for _ in 0..20_000 {
+            let lib: f64 = rng.gen_range(2000.0..8000.0);
+            let lam = if rng.gen::<f64>() < 0.2 {
+                bg * lib
+            } else {
+                Gamma::new(4.0, mu * lib / 4.0).unwrap().sample(&mut rng)
+            };
+            n.push(lib);
+            y.push(Poisson::new(lam.max(1e-12)).unwrap().sample(&mut rng));
+        }
+        let (fh, _, _) = loyscope::fit_bg(&n, &y, bg);
+        assert!((fh - 0.2).abs() < 0.03, "mu {mu}: estimated {fh}");
+    }
+}

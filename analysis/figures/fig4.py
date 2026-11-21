@@ -66,7 +66,7 @@ fig.update_yaxes(tickvals=list(range(len(res))), ticktext=ylab, autorange="rever
 fig.update_xaxes(title_text="Difference in cells without Y, age-adjusted (points)", row=2, col=1)
 # c: calling rules of the 25 studies found by the literature search
 cat = {}
-for r in rows(os.path.join(TAB, "audit_table.tsv")):
+for r in rows(os.path.join(os.path.dirname(__file__), "..", "..", "resources", "literature_search.tsv")):
     d = r["depth_handling"].lower()
     k = "ML classifier" if "ml classifier" in d else "depth-scaled threshold" if "scaled" in d else "UMI filter only" if "umi filter" in d else "none stated" if d.startswith("none") else "not reported"
     cat[k] = cat.get(k, 0) + 1

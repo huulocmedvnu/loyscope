@@ -35,7 +35,9 @@ Twenty pseudo-Y sets are fitted in the same way and must return f close to 0.
 | `fragy` | ATAC fragment files | per-barcode total, X and MSY fragment counts, streamed |
 | `encmulti` | ENCODE 10x multiome | RNA records for `loyfit` and chromatin counts (MSY, X, 20 matched autosomal control bin sets) of the same nuclei |
 | `multijoin` | `encmulti` outputs | joins RNA and chromatin of each nucleus; per-group chromatin and RNA estimates and per-nucleus posteriors |
-| `spaty` | Visium HD 8 um bins | experimental: tile-level test for a deficit of MSY reads against X gametologs, with matched autosomal controls |
+| `atacmix` | `fragy` outputs | fraction of nuclei without Y from MSY fragment counts, female background fixed |
+| `loydepth` | h5ad + extraction | genome-wide contrast of cells without and with Y reads within library-size deciles, with an autosomal control split |
+| `spaty` | Visium HD 8 um bins | tile-level test for a deficit of MSY reads against X gametologs, with matched autosomal controls |
 
 Matrices are read in row blocks through HDF5 hyperslabs with a prefetching reader thread; memory stays near one block
 plus per-group summaries.
@@ -52,21 +54,42 @@ cargo test --release                # estimator recovery on simulated counts
 bash workflow/run_all.sh          # or run the numbered steps in workflow/ one by one
 ```
 
-Steps:
+Steps (each writes to `results/`, set in `workflow/config.sh`):
 
-1. `00_resources.sh`  gene coordinates (UCSC hg38 RefSeq Select) and cell lifespans (Sender and Milo 2021)
-2. `01_cellxgene.sh`  all datasets in `config/datasets.tsv`
-3. `02_onek1k_geo.sh` OneK1K author matrices (GEO GSE196830)
-4. `03_kidney_geo.sh` kidney matrices of a published LOY study (GSE151302, GSE195460, GSE220289)
-5. `04_seaad_atac.sh` SEA-AD MTG chromatin accessibility
-6. `05_robustness.sh` library-level grouping and single-gene Y set
-7. `07_encode_multiome.sh` ENCODE multiome libraries in `config/encode_manifest.tsv` (`CHROMATIN=0` for RNA only)
-8. `06_tables.sh`     summary tables in `results/tables`, including the robustness analyses (`analysis/robust_stats.py`)
+| step | script | what it does |
+|---|---|---|
+| 0 | `00_resources.sh` | gene coordinates (UCSC hg38 RefSeq Select) and cell lifespans (Sender and Milo 2021) |
+| 1 | `01_cellxgene.sh` | every dataset in `config/datasets.tsv`: extraction, fits, PAR1 dosage, benchmarks, pseudobulk contrasts |
+| 2 | `02_onek1k_geo.sh` | OneK1K author count matrices (GEO GSE196830) |
+| 3 | `03_kidney_geo.sh` | kidney RNA (GSE151302, GSE195460, GSE220289), density-trough comparator, ATAC fragments of donor DN4 |
+| 4 | `04_seaad_atac.sh` | middle temporal gyrus chromatin peaks joined to the RNA of the same nuclei |
+| 5 | `05_robustness.sh` | grouping by library, RPS4Y1-only Y set, ambient contamination x3 and x10 |
+| 7 | `07_encode_multiome.sh` | ENCODE heart multiome (`config/encode_manifest.tsv`), RNA and chromatin of the same nuclei |
+| 8 | `08_visium_hd.sh` | Visium HD sections (`config/visium_hd.tsv`) |
+| 9 | `09_depth_de.sh` | library-size-matched genome-wide contrast of cells without and with Y reads (Immune Aging) |
+| 6 | `06_tables.sh` | summary tables and all statistics (`analysis/robust_stats.py` and the scripts in `analysis/`) |
+| 10 | `10_figures.sh` | figures, graphical abstract, flowchart and `results/tables/numbers.json` |
 
-Figures are drawn from `results/tables` and `results/extract` by the scripts in `analysis/figures` (Plotly with Kaleido).
-The summary tables reported in the manuscript are also kept in `docs/tables`.
+`run_all.sh` runs them in this order. Steps 1 to 9 need the network and about 200 GB of temporary disk; downloads
+are deleted after extraction unless `KEEP_H5AD=1`. Steps 5, 6 and 10 run from saved outputs in minutes.
 
-Settings (threads, parallel datasets, paths) are in `workflow/config.sh` and can be overridden by environment variables.
+### Where each result comes from
+
+| manuscript item | produced by |
+|---|---|
+| Figure 1 (study design) | `analysis/figures/make_flowchart.py` |
+| Figure 2 (measurement) | `analysis/figures/fig_measure.py` (pseudo-Y, thinning, calibration: `loyfit`, `loybench`) |
+| Figure 3 (loss of the chromosome) | `fig3.py` (`loycell`; kidney chromatin `fragy` + `atacmix`, `analysis/dn4_estimates.py`) |
+| Figure 4 (where loss occurs) | `fig5.py` (`analysis/robust_stats.py`: REML and Hartung-Knapp meta-analysis) |
+| Figure 5 (systemic or local) | `fig6.py` (`analysis/ts_donor.py`, `turnover.py`, `bio345.py`) |
+| Figure 6 (cells without Y) | `fig7.py` (`loyde`, `loydepth`) |
+| Figure 7 (published estimates) | `fig4.py` (`resources/literature_search.tsv`, `robust_stats.py` disease contrasts) |
+| Supplementary Figures 1 and 2 | `fig1.py`, `fig2.py` (`loybench`) |
+| Supplementary Figure 3 | `figS3_spatial.py` (`spaty`) |
+| Supplementary Table 2 | `resources/literature_search.tsv` (Europe PMC search, screened by hand) |
+| Supplementary Table 3 | `analysis/depth_retention.py` |
+| Supplementary Tables 4 and 5 | `analysis/robust_stats.py` (`results/tables/robust_*.tsv`) |
+| Numbers in the text | `analysis/figures/manuscript_numbers.py` and `results/tables/*.txt` |
 
 ## Data
 
