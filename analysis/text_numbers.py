@@ -95,10 +95,10 @@ for k in ATLAS_NAMES:
         for ft in rec:
             if ("spike", ft) in g:
                 f0 = float(o["zinb"]); f1 = float(g[("spike", ft)]["zinb"])
-                rec[ft].append(100 * (f1 - f0) / max(1e-9, 1 - f0) / float(ft))
+                rec[ft].append(100 * (f1 - f0) / max(1e-9, 1 - f0))  # recovered loss in percent, as Supplementary Figure 1d
     if used: atl.append(k); nb += used
 q = lambda v, p: sorted(v)[int(p * (len(v) - 1))]
-put("spikein_recovery_pct", {ft: [round(st.median(v), 1), round(q(v, 0.25), 1), round(q(v, 0.75), 1)] for ft, v in rec.items()}, "median, quartiles of recovered / spiked")
+put("spikein_recovered_pct", {ft: [round(st.median(v), 2), round(sorted(v)[len(v) // 4], 2), round(sorted(v)[3 * len(v) // 4], 2)] for ft, v in rec.items()}, "median and quartiles of recovered loss (%) for spiked fractions")
 put("spikein_groups_atlases", [nb, len(atl)])
 
 # ---- loss of the chromosome ----

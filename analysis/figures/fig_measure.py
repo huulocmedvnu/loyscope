@@ -33,13 +33,14 @@ for k, n in NAMES.items():
     v = sorted(100 * float(r["pseudo_f_med"]) for r in rows(fn) if r["sex"] == "male" and r["k"] != "NaN" and float(r["mu"]) * float(r["mean_umi"]) >= 5 and (r["assay"].startswith("10x") or "GEO" in r["assay"]))
     if len(v) >= 10: ys.append(n); med.append(st.median(v)); p95.append(v[int(0.95 * len(v))])
 fig.add_trace(go.Scatter(x=med, y=ys, mode="markers", marker=dict(symbol="diamond", size=10, color=C[1]), error_x=dict(type="data", symmetric=False, array=[b - a for a, b in zip(med, p95)], arrayminus=[0] * len(med), thickness=1, width=0), showlegend=False), 2, 1)
-fig.update_xaxes(title_text="Estimated loss, median to 95th percentile (%)", range=[-0.3, 5], row=2, col=1); fig.update_yaxes(autorange="reversed", row=2, col=1)
+fig.update_xaxes(title_text="Estimated loss, median to 95th percentile (%)", range=[-0.3, 5], row=2, col=1)
+fig.update_yaxes(autorange="reversed", tickmode="array", tickvals=ys, ticktext=ys, tickfont=dict(size=10), row=2, col=1)  # every atlas labelled
 def load(fn): return {(r["cell_type"], r["donor"]): 100 * max(0.0, float(r["f"]) - float(r["pseudo_f_med"])) for r in rows(fn) if r["sex"] == "male" and r["k"] != "NaN" and float(r["mu"]) * float(r["mean_umi"]) >= 1.5}
 a, b = load(ext("onek1k.fitamb.tsv")), load(ext("onek1k_geo.fitamb.tsv")); k = [x for x in a if x in b]
 fig.add_trace(go.Scatter(x=[a[x] for x in k], y=[b[x] for x in k], mode="markers", marker=dict(size=4, color=C[2], opacity=0.5), showlegend=False), 2, 2)
 fig.add_trace(go.Scatter(x=[0, 40], y=[0, 40], mode="lines", line=dict(color=GREY, dash="dot"), showlegend=False), 2, 2)
 fig.update_xaxes(title_text="OneK1K, CELLxGENE matrix (%)", range=[0, 40], row=2, col=2); fig.update_yaxes(title_text="OneK1K, GEO author matrix (%)", range=[0, 40], row=2, col=2)
-style(fig, height=800, legends=dict(legend=leg(0.42, 0.99, "right", "top"), legend2=leg(1.0, 0.99, "right", "top")))
+style(fig, height=960, legends=dict(legend=leg(0.42, 0.99, "right", "top"), legend2=leg(1.0, 0.99, "right", "top")))
 panel_titles_left(fig, [-0.14, 0.6, -0.14, 0.6])
 fig.update_layout(margin=dict(l=140))
 save(fig, "fig_measure")

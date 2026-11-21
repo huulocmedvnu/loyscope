@@ -3,8 +3,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from common import *
 
-NAMES = {"aida": "AIDA", "onek1k_geo": "OneK1K", "iaging": "Immune Aging", "blood": "Indonesia blood", "retina": "Retina/choroid", "tsapiens": "Tabula Sapiens",
-         "ad_mssm": "Brain MSSM", "ad_radc": "Brain RADC", "ad_microglia": "Microglia", "ckd_sn": "Kidney KPMP", "covid": "COVID-19", "dcm": "Heart DCM", "hlca": "Lung HLCA"}
+NAMES = {k: ATLAS_NAMES[k] for k in canonical()}
 fig = make_subplots(rows=2, cols=2, horizontal_spacing=0.17, vertical_spacing=0.2,
                     subplot_titles=("a  Pseudo-Y genes", "b  Observed groups", "c  Depth halved", "d  CELLxGENE and author matrices"))
 # a: model estimate on pseudo-Y sets (true value 0): median and 95th percentile over male groups with expected Y >= 5
@@ -17,7 +16,7 @@ for k, n in NAMES.items():
     ys.append(n); med.append(st.median(v)); p95.append(v[int(0.95 * len(v))])
 fig.add_trace(go.Scatter(x=med, y=ys, mode="markers", marker=dict(symbol="diamond", size=10, color=C[1]), error_x=dict(type="data", symmetric=False, array=[b - a for a, b in zip(med, p95)], arrayminus=[0] * len(med), thickness=1, width=0), name="median, 95th percentile", legend="legend"), 1, 1)
 fig.update_xaxes(title_text="Estimated loss for pseudo-Y genes (%)", range=[-0.3, 5], row=1, col=1)
-fig.update_yaxes(autorange="reversed", row=1, col=1)
+fig.update_yaxes(autorange="reversed", tickmode="array", tickvals=list(NAMES.values()), ticktext=list(NAMES.values()), tickfont=dict(size=10), row=1, col=1)
 # b: zero-read rule vs model, male groups, expected Y >= 5, all atlases
 xn, ym = [], []
 for k in NAMES:
@@ -50,6 +49,6 @@ k = [x for x in a if x in b]
 fig.add_trace(go.Scatter(x=[a[x] for x in k], y=[b[x] for x in k], mode="markers", marker=dict(size=4, color=C[2], opacity=0.5), showlegend=False), 2, 2)
 fig.add_trace(go.Scatter(x=[0, 40], y=[0, 40], mode="lines", line=dict(color=GREY, dash="dot"), showlegend=False), 2, 2)
 fig.update_xaxes(title_text="CELLxGENE matrix (%)", range=[0, 40], row=2, col=2); fig.update_yaxes(title_text="GEO author matrix (%)", range=[0, 40], row=2, col=2)
-style(fig, height=780, legends=dict(legend=leg(0.41, 0.99, "right", "top")))
+style(fig, height=960, legends=dict(legend=leg(0.41, 0.99, "right", "top")))
 panel_titles_left(fig, [0.0, 0.585, 0.0, 0.585])
 save(fig, "fig2")

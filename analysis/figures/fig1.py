@@ -2,6 +2,7 @@
 import csv, glob, os, statistics as st
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from common import canonical
 
 RES = os.environ.get("LOY_RESULTS", "results"); EXT = os.path.join(RES, "extract")
 OUT = os.path.join(RES, "figures"); os.makedirs(OUT, exist_ok=True)
@@ -16,7 +17,7 @@ fig = make_subplots(rows=2, cols=2, horizontal_spacing=0.2, vertical_spacing=0.2
 # a: pseudo-Y apparent loss under the zero-read rule vs model, by expected Y UMI per intact cell
 bins = [(0, 1), (1, 2), (2, 5), (5, 10), (10, 20), (20, 1e9)]; lab = ["<1", "1-2", "2-5", "5-10", "10-20", ">20"]
 pn = {b: [] for b in bins}; pm = {b: [] for b in bins}
-for fn in glob.glob(os.path.join(EXT, "*.fitamb.tsv")):
+for fn in [os.path.join(EXT, f"{k}.fitamb.tsv") for k in canonical()]:
     for r in rows(fn):
         if r["sex"] != "male" or r["k"] == "NaN" or not (r["assay"].startswith("10x") or "GEO" in r["assay"]): continue
         e = float(r["mu"]) * float(r["mean_umi"])
@@ -50,12 +51,12 @@ fig.add_trace(go.Scatter(x=[100 * float(r["naive"]) for r in obs], y=[100 * floa
 fig.add_trace(go.Scatter(x=[0, 100], y=[0, 100], mode="lines", line=dict(color="#999999", dash="dot"), showlegend=False), 2, 1)
 fig.update_xaxes(title_text="Zero-read rule (%)", range=[0, 60], row=2, col=1)
 fig.update_yaxes(title_text="Random Forest (%)", range=[0, 60], row=2, col=1)
-# d: recovery of spiked-in loss (groups with expected Y >= 5), pooled over atlases
+# d: recovery of spiked-in loss (groups with expected Y >= 5), pooled over every benchmarked atlas
 for j, (m, name) in enumerate(meths):
     xs, ys, lo, hi = [], [], [], []
     for ft in ["0.02", "0.05", "0.1", "0.2"]:
         rec = []
-        for a in ATLASES:
+        for a in canonical():  # every benchmarked atlas of the canonical set
             fn = os.path.join(EXT, f"{a}.bench.tsv")
             if not os.path.exists(fn): continue
             by = {}
