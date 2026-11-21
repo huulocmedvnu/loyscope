@@ -1,0 +1,7 @@
+target/
+results/
+data/
+*.h5ad
+*.h5
+__pycache__/
+.DS_Store

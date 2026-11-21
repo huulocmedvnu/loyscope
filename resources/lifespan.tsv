@@ -1,0 +1,27 @@
+cell_type	lifespan_days	lifespan_rodent_days
+Erythrocytes	119	None
+Neutrophils	6.6	None
+Thymocytes	None	3.8
+Mature T cells	320	None
+B cells progenitors	None	0.83
+Transitional B cells	None	9.9
+Mature B cells	63	None
+Monocytes	3.5	None
+Stomach epithelia	13	None
+Small intestine epithelia	5.3	None
+Colon epithelia	3.4	None
+Epidermal cells	31	None
+Dermal fibroblasts	None	140
+Endothelial cells	2300	None
+Alveolar epithelial cells	None	32
+Alveolar macrophages	165	None
+Bronchial epithelial cells	139	None
+Lung interstitial cells	None	44
+Adipocytes	4000	None
+Myocytes	18000	None
+Cardiomyocytes	56000	None
+Neurons	300000	None
+Glial cells	21000	None
+Hepatocytes	None	360
+Kupffer cells	None	400
+Stellate cells	None	30

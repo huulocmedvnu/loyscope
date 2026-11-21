@@ -1,0 +1,4 @@
+name	accession	files	role
+onek1k_geo	GSE196830	per-pool *_RawCounts.csv.gz + *_Individual_Barcodes.csv.gz (75 pools)	author count matrices for the OneK1K benchmark
+gb2024	GSE151302;GSE195460;GSE220289	*_filtered_feature_bc_matrix.h5 (12 samples)	re-analysis of the published kidney LOY study
+seaad_atac	SEA-AD s3://sea-ad-single-cell-profiling/MTG/ATACseq/SEAAD_MTG_ATACseq_final-nuclei.2024-12-06.h5ad	ATAC h5ad + metadata csv	multiome chromatin ground truth
