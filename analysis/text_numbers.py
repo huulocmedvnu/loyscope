@@ -164,15 +164,19 @@ best = min(D, key=lambda r: float(r["p"])); put("contrast_smallest_p", [best["da
 
 # ---- ambient sensitivity: contamination fraction x3 and x10, and the relative parameterisation ----
 def compare(suffix):
-    diffs = []; shift = {}
+    d = []; pd = []
     for fn in glob.glob(os.path.join(E, "*.fitamb.tsv")):
         n = os.path.basename(fn).split(".")[0]; alt = os.path.join(E, f"{n}.{suffix}.tsv")
         if n in SKIP or not os.path.exists(alt): continue
         a = {r["gid"]: r for r in male_groups(fn, 5)}; b = {r["gid"]: r for r in rows(alt) if r["k"] != "NaN"}
         for g, r in a.items():
-            if g in b: diffs.append(100 * ((float(b[g]["f"]) - float(b[g]["pseudo_f_med"])) - (float(r["f"]) - float(r["pseudo_f_med"]))))
-    diffs.sort(); ad = sorted(abs(x) for x in diffs)
-    return {"groups": len(diffs), "median_change": round(st.median(diffs), 3), "median_abs": round(st.median(ad), 3), "p95_abs": round(ad[int(0.95 * len(ad))], 2)} if diffs else None
+            if g in b:
+                d.append(100 * ((float(b[g]["f"]) - float(b[g]["pseudo_f_med"])) - (float(r["f"]) - float(r["pseudo_f_med"]))))
+                pd.append(100 * (float(b[g]["pseudo_f_med"]) - float(r["pseudo_f_med"])))
+    if not d: return None
+    d.sort(); pd.sort(); ad = sorted(abs(x) for x in d)
+    return {"groups": len(d), "loy_change_mean": round(st.mean(d), 2), "loy_change_p5": round(d[int(0.05 * len(d))], 2), "loy_change_p95": round(d[int(0.95 * len(d))], 2),
+            "loy_abs_p95": round(ad[int(0.95 * len(ad))], 2), "control_change_mean": round(st.mean(pd), 2), "control_change_p95": round(pd[int(0.95 * len(pd))], 2)}
 for s in ("fitamb_x3", "fitamb_x10", "fitrel"): put(f"ambient_sensitivity[{s}]", compare(s))
 json.dump(OUT, open(os.path.join(T, "text_numbers.json"), "w"), indent=1)
 open(os.path.join(T, "text_numbers.txt"), "w").write("\n".join(TXT) + "\n")
