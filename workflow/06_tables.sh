@@ -11,4 +11,3 @@ LOY_RESULTS=$LOY_RESULTS python3 analysis/robust_stats.py > $T/robust_stats.txt
 python3 analysis/dn4_estimates.py > $T/dn4.txt
 python3 analysis/depth_retention.py > $T/depth_retention.txt
 [ -s $E/encode_heart.fitamb.tsv ] && LOY_RESULTS=$LOY_RESULTS python3 analysis/encode_dosage.py "$LOY_RESULTS" > $T/encode_dosage.txt || true
-python3 analysis/text_numbers.py > $T/text_numbers.log
