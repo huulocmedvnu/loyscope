@@ -56,6 +56,9 @@ for fn in sorted(glob.glob(os.path.join(E, "*.fitamb.tsv"))):
         dis.update(a for a in r["disease"].split(" || ") if a != "normal")
         if r["k"] != "NaN" and float(r["mu"]) * float(r["mean_umi"]) >= 5 and r["assay"].startswith("10x") and n != "gb2024":
             ct5.add(r["cell_type"]); g5 += 1; c5 += k; m5.add((n, r["donor"]))
+datasets = [os.path.basename(f).split(".")[0] for f in glob.glob(os.path.join(E, "*.fitamb.tsv"))]
+put("datasets", len([d for d in datasets if d not in ("onek1k_geo", "retina_lib", "gb2024")]), "CELLxGENE atlases and the ENCODE collection")
+put("mssm_men", len({r["donor"] for r in rows(os.path.join(E, "ad_mssm.fitamb.tsv")) if r["sex"] == "male"}))
 put("total_cells_millions", round(cells / 1e6, 1)); put("total_donors", len(alld)); put("male_cells_millions", round(mc / 1e6, 1))
 put("men", len(men)); put("organs_male", len(organs)); put("anatomical_sites_male", len(sites)); put("diseases_male", len(dis))
 put("cell_types_expY5", len(ct5)); put("groups_expY5", g5); put("men_expY5", len(m5)); put("cells_expY5_millions", round(c5 / 1e6, 1))

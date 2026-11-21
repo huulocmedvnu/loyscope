@@ -8,6 +8,8 @@ from common import TAB, OUT
 
 N = json.load(open(os.path.join(TAB, "numbers.json")))
 import csv
+TN = json.load(open(os.path.join(TAB, "text_numbers.json")))
+lv = lambda k: TN[f"level_55plus[{k}]"][0]
 meta = {r["cell_class"]: float(r["slope_per_decade"]) for r in csv.DictReader(open(os.path.join(os.environ.get("LOY_RESULTS", "results"), "tables", "robust_meta.tsv")), delimiter="\t")}
 zero_rule = list(N["pseudo_zero_rule_by_bin"].values())[0]
 W, H = 1800, 900
@@ -79,10 +81,10 @@ nx, ny = bxc - 30, byc - 58
 circ(nx, ny, 10, NEU_L, NEU, 3)
 for a in (0.3, 1.8, 3.3, 4.6): path(f"M{nx + 10 * math.cos(a):.1f},{ny + 10 * math.sin(a):.1f} L{nx + 28 * math.cos(a):.1f},{ny + 28 * math.sin(a):.1f}", stroke=NEU, w=2.5)
 vx = x0 + 360
-for i, (lab, v, col) in enumerate([("leptomeningeal", "17%", VAS), ("endothelial", "10%", VAS), ("microglia", "3%", MYE), ("neurons, glia", "0%", NEU)]):
+for i, (lab, v, col) in enumerate([("leptomeningeal", f"{lv('ad_mssm|vascular leptomeningeal cell'):.0f}%", VAS), ("endothelial", f"{lv('ad_mssm|endothelial cell'):.0f}%", VAS), ("microglia", f"{lv('ad_mssm|microglial cell'):.0f}%", MYE), ("neurons, glia", f"{TN['neural_level_range_55plus'][1]:.0f}%", NEU)]):
     yy = 222 + i * 60
     text(vx, yy, v, 34, "bold", fill=col); text(vx + 76, yy - 4, lab, 22)
-text(vx, 470, "brains of 468 men", 22, fill=MUTE)
+text(vx, 470, f"brains of men 55 or older", 22, fill=MUTE)
 ex, ey = x0 + 40, 560
 path(f"M{ex - 34},{ey} C{ex - 14},{ey - 28} {ex + 14},{ey - 28} {ex + 34},{ey} C{ex + 14},{ey + 28} {ex - 14},{ey + 28} {ex - 34},{ey} Z", fill="white", stroke=INK, w=3)
 circ(ex, ey, 11, VAS_L, VAS, 3)
@@ -107,16 +109,16 @@ text(hx - 22, my + 8, "marrow", 22, anchor="end", fill=MYE)
 rx = x0 + 250
 circ(rx + 12, 255, 12, MYE_L, MYE, 3)
 text(rx + 40, 250, "Myeloid loss", 27, "bold", fill=MYE); text(rx + 40, 282, "shared by all organs", 25)
-text(rx + 40, 314, "of a man (79%)", 25, fill=MUTE)
+text(rx + 40, 314, f"of a man ({100 * TN['within_donor']['myeloid']:.0f}%)", 25, fill=MUTE)
 path(f"M{rx - 6},430 L{rx + 30},430", stroke=VAS, w=8)
 text(rx + 40, 425, "Endothelial loss", 27, "bold", fill=VAS); text(rx + 40, 457, "arises in each", 25)
-text(rx + 40, 489, "vascular bed (8%)", 25, fill=MUTE)
+text(rx + 40, 489, f"vascular bed ({100 * TN['within_donor']['endothelial']:.0f}%)", 25, fill=MUTE)
 text(rx - 10, 640, "Large clones in a", 25); text(rx - 10, 672, "minority of older men", 25)
 
 # ================= footer =================
 add(f"<rect x='0' y='808' width='{W}' height='92' fill='#F5F7FB'/>")
 text(W / 2, 850, "Loss of chromosome Y is confined to dividing cells and concentrated in the vasculature", 30, "bold", "middle", INK)
-text(W / 2, 886, "10.5 million cells   •   2,287 men   •   24 organs   •   242 cell types   •   33 diseases   •   24 datasets", 22, "normal", "middle", MUTE)
+text(W / 2, 886, f"{TN['male_cells_millions']} million cells   •   {TN['men']:,} men   •   {TN['organs_male']} organs   •   {TN['cell_types_expY5']} cell types   •   {TN['diseases_male']} diseases   •   {TN['datasets']} datasets", 22, "normal", "middle", MUTE)
 add("</svg>")
 p = os.path.join(OUT, "graphical_abstract.svg"); open(p, "w").write("\n".join(svg) + "\n")
 w600 = round(180 / 25.4 * 600); png = os.path.join(OUT, "graphical_abstract.png")

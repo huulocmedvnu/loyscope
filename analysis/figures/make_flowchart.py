@@ -6,6 +6,7 @@ Canvas units: 10 per mm, 180 mm wide, so 8 pt is about 28 units.
 """
 import json, math, os, subprocess
 from common import TAB, OUT
+TN = json.load(open(os.path.join(TAB, "text_numbers.json")))
 
 N = json.load(open(os.path.join(TAB, "numbers.json")))
 W = 1800
@@ -52,7 +53,7 @@ def row_frame(k, col, title, lines_, fig):
     return y
 
 # ---- row 1: depth and detection
-y = row_frame(0, BLUE, "Measuring loss in single cells", ["24 public datasets", "10.5 million cells, 2,287 men", "24 organs, 33 diseases", f"{N['male_groups_all']:,} donor-cell-type groups"], "Fig. 2")
+y = row_frame(0, BLUE, "Measuring loss in single cells", [f"{TN['datasets']} public datasets", f"{TN['male_cells_millions']} million cells, {TN['men']:,} men", f"{TN['organs_male']} organs, {TN['diseases_male']} diseases", f"{N['male_groups_all']:,} donor-cell-type groups"], "Fig. 2")
 cy = y + 120
 for i, (r, nY) in enumerate([(22, 3), (14, 1), (9, 0)]):
     x = C2 + 60 + i * 120
@@ -105,7 +106,7 @@ bx, by, bw = C3 + 170, y + 185, 260
 xs_ = lambda v: bx + bw * (v + 5) / 15
 line(xs_(0), by - 140, xs_(0), by, GREY, 2, "5 4"); line(bx, by, bx + bw, by, INK, 2.5)
 for v in (-5, 0, 5, 10): text(xs_(v), by + 28, f"{v}", 21, anchor="middle")
-for i, (lab, a, b) in enumerate([("kidney CKD", 6.6, 1.2), ("kidney AKI", -3.7, -2.1), ("heart DCM", 5.4, 0.6)]):
+for i, (lab, a, b) in enumerate([(lab, TN[f"contrast[{k}]"]["zero_read_diff"], TN[f"contrast[{k}]"]["model_diff"]) for lab, k in [("kidney CKD", "kidney_TAL_CKD"), ("kidney AKI", "nuclei_PT_AKI"), ("heart DCM", "dcm_unannotated")]]):
     yy = by - 115 + i * 38
     text(bx - 14, yy + 8, lab, 22, anchor="end")
     add(f"<circle cx='{xs_(a):.1f}' cy='{yy}' r='8' fill='{BLUE}'/>"); add(f"<circle cx='{xs_(b):.1f}' cy='{yy}' r='8' fill='{RED}'/>")
@@ -113,7 +114,7 @@ text(bx + bw + 14, by - 50, "zero-read", 22, fill=BLUE); text(bx + bw + 14, by -
 text(bx + bw / 2, by + 56, "disease minus control (points)", 22, anchor="middle")
 
 # ---- row 4: where LOY occurs
-y = row_frame(2, PURPLE, "Where loss occurs", ["1,526 male donors,", "10,219 groups", "four blood cohorts"], "Fig. 4")
+y = row_frame(2, PURPLE, "Where loss occurs", [f"{TN['men_expY5']:,} male donors,", f"{TN['groups_expY5']:,} groups", "four blood cohorts"], "Fig. 4")
 cy = y + 125
 # neuron, vessel, blood cell pictograms
 nx = C2 + 60
@@ -128,8 +129,8 @@ text(vx, cy + 76, "vessels", 22, anchor="middle")
 bxx = C2 + 420
 for i in range(5): cell(bxx - 50 + (i % 3) * 34, cy - 14 + (i // 3) * 32, BLUE, 12, y_mark=i not in (1, 3))
 text(bxx - 15, cy + 76, "blood, microglia", 22, anchor="middle")
-bars(C3 + 30, y + 205, [17.2, 9.6, 3.2, 0.1], [RED, RED, BLUE, PURPLE], ["VLMC", "endo", "micro", "neuron"], 20)
-text(C3 + 300, y + 90, "brain, 468 donors,", 22); text(C3 + 300, y + 120, "cells without Y (%)", 22)
+bars(C3 + 30, y + 205, [TN["level_55plus[ad_mssm|vascular leptomeningeal cell]"][0], TN["level_55plus[ad_mssm|endothelial cell]"][0], TN["level_55plus[ad_mssm|microglial cell]"][0], TN["neural_level_range_55plus"][1]], [RED, RED, BLUE, PURPLE], ["VLMC", "endo", "micro", "neuron"], 20)
+text(C3 + 300, y + 90, "brain, men 55 or older,", 22); text(C3 + 300, y + 120, "cells without Y (%)", 22)
 
 # ---- row 5: systemic or local
 y = row_frame(3, ORANGE, "Systemic or local", ["Tabula Sapiens,", "same donor,", "several tissues"], "Fig. 5")
@@ -142,11 +143,11 @@ for i, t in enumerate(["lung", "spleen", "skin"]):
     text(C2 + 180, yy + 8, t, 22)
     cell(C2 + 280, yy, BLUE, 11, y_mark=False); cell(C2 + 320, yy, RED, 11, y_mark=(i != 1))
 text(C2 + 260, cy + 100, "myeloid", 22, fill=BLUE); text(C2 + 360, cy + 100, "endothelial", 22, fill=RED)
-bars(C3 + 30, y + 205, [79, 24, 16, 8], [BLUE, ORANGE, PURPLE, RED], ["myeloid", "stroma", "lymph", "endo"], 90, fmt="{:.0f}", gap=40)
+bars(C3 + 30, y + 205, [100 * TN["within_donor"][k] for k in ("myeloid", "stromal", "lymphoid", "endothelial")], [BLUE, ORANGE, PURPLE, RED], ["myeloid", "stroma", "lymph", "endo"], 90, fmt="{:.0f}", gap=40)
 text(C3 + 330, y + 90, "variance explained", 22); text(C3 + 330, y + 120, "by donor (%)", 22)
 
 # ---- row 6: cells without Y
-y = row_frame(4, CYAN, "Cells without Y", ["Immune Aging,", "memory regulatory T cells", "Tabula Sapiens B cells"], "Fig. 6")
+y = row_frame(4, CYAN, "Cells without Y", ["Immune Aging,", "memory regulatory T cells,", "matched on library size"], "Fig. 6")
 cy = y + 120
 cell(C2 + 70, cy, CYAN, 26); text(C2 + 70, cy + 64, "with Y", 22, anchor="middle")
 cell(C2 + 250, cy, CYAN, 26, y_mark=False); text(C2 + 250, cy + 64, "without Y", 22, anchor="middle")
@@ -156,7 +157,7 @@ bx, by, bw = C3 + 140, y + 200, 260
 xs_ = lambda v: bx + bw * (v + 1) / 2
 line(xs_(0), by - 150, xs_(0), by, GREY, 2); line(bx, by, bx + bw, by, INK, 2.5)
 for v in (-1, 0, 1): text(xs_(v), by + 28, f"{v}", 21, anchor="middle")
-for i, (g, v) in enumerate([("TCL1A", 0.99), ("PRDM1", 0.22), ("IL7R", -0.23), ("SATB1", -0.65)]):
+for i, (g, v) in enumerate([(g, TN["de_depth_genes"][g][0]) for g in ("PRDM1", "HELLS", "IL7R", "SATB1")]):
     yy = by - 125 + i * 32; c = RED if v > 0 else BLUE
     add(f"<rect x='{min(xs_(0), xs_(v)):.1f}' y='{yy - 10}' width='{abs(xs_(v) - xs_(0)):.1f}' height='20' fill='{c}'/>")
     text(bx - 12, yy + 8, g, 22, anchor="end")
