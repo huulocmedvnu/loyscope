@@ -1,0 +1,17 @@
+threshold	dataset	cell_type	donors	slope_per_decade	p
+2	ad_mssm	microglial cell	366	1.89	0.0004998
+2	ad_mssm	endothelial cell	30	2.77	0.0004998
+2	ad_mssm	vascular leptomeningeal cell	50	3.23	0.003498
+2	retina	pericyte	10	2.14	0.03298
+2	retina	endothelial cell of arteriole	11	5.73	0.006997
+3	ad_mssm	microglial cell	357	1.85	0.0004998
+3	ad_mssm	endothelial cell	30	2.77	0.0004998
+3	ad_mssm	vascular leptomeningeal cell	50	3.23	0.003498
+3	retina	pericyte	10	2.14	0.03298
+3	retina	endothelial cell of arteriole	11	5.73	0.006997
+5	ad_mssm	microglial cell	208	2.13	0.0004998
+5	ad_mssm	endothelial cell	20	3.67	0.0009995
+5	ad_mssm	vascular leptomeningeal cell	46	3.37	0.01049
+5	retina	pericyte	9	2.18	0.04398
+5	retina	endothelial cell of arteriole	11	5.73	0.006997
+10	retina	endothelial cell of arteriole	10	5.57	0.01549

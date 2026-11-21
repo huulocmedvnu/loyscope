@@ -1,0 +1,91 @@
+dataset	disease	cell_type	n_case	n_ctrl	model_diff	m_lo	m_hi	p	q	zero_read_diff	z_lo	z_hi	p_zero	q_zero
+ad_mssm	Alzheimer disease	oligodendrocyte precursor cell	93	143	0.91	0.10	2.11	0.001499	0.1349	1.21	0.09	2.46	0.002499	0.09895
+ad_mssm	Alzheimer disease	L5/6 near-projecting glutamatergic neuron	8	11	0.02	0.00	0.07	0.004998	0.2249	0.37	0.00	1.14	0.004998	0.09895
+dcm	dilated cardiomyopathy	cardiac muscle cell	32	10	3.61	1.70	5.68	0.01699	0.416	3.97	-1.76	9.69	0.2084	0.5711
+ckd_sn	chronic kidney disease	kidney distal convoluted tubule epithelial cell	21	20	-0.62	-1.30	0.04	0.01849	0.416	-0.59	-2.47	1.10	0.4883	0.9139
+kidney	chronic kidney disease	kidney connecting tubule epithelial cell	12	11	-1.66	-2.91	-0.46	0.03648	0.5697	-2.76	-8.61	4.03	0.3533	0.7571
+ad_microglia	Alzheimer disease	microglial cell	11	13	5.71	1.01	12.79	0.04698	0.5697	6.40	0.34	11.66	0.01499	0.1687
+ckd_sn	acute kidney injury	kidney collecting duct principal cell	11	20	-4.09	-9.45	-0.50	0.05047	0.5697	-6.85	-12.58	-2.38	0.003998	0.09895
+kidney	chronic kidney disease	epithelial cell of proximal tubule	21	10	6.04	1.72	10.83	0.05547	0.5697	0.65	-3.56	5.54	0.8456	0.9667
+ad_mssm	Alzheimer disease	L6b glutamatergic neuron of the primary motor cortex	9	9	0.16	0.03	0.75	0.05697	0.5697	0.90	-0.00	3.27	0.003498	0.09895
+ad_mssm	Alzheimer disease	astrocyte	90	125	0.06	-0.03	0.14	0.08946	0.7851	0.18	-0.20	0.56	0.3793	0.7759
+ckd_sn	chronic kidney disease	kidney collecting duct principal cell	16	20	-3.17	-6.78	-0.40	0.09595	0.7851	-5.43	-9.02	-1.84	0.01049	0.1349
+ckd_sn	acute kidney injury	epithelial cell of proximal tubule	18	26	-2.11	-4.31	0.12	0.1359	0.7946	-3.74	-5.95	-1.10	0.006997	0.1049
+ckd_sn	acute kidney injury	kidney loop of Henle thin descending limb epithelial cell	6	14	-4.53	-10.43	0.97	0.1374	0.7946	-7.43	-12.94	-0.03	0.05897	0.3317
+ckd_sn	chronic kidney disease	parietal epithelial cell	7	11	-1.09	-2.84	0.03	0.1399	0.7946	-4.89	-7.54	-2.07	0.005497	0.09895
+dcm	dilated cardiomyopathy	myeloid cell	8	4	3.76	-7.92	7.91	0.1464	0.7946	0.99	-11.49	6.97	0.8286	0.9667
+ckd_sn	acute kidney injury	kidney distal convoluted tubule epithelial cell	15	20	-0.40	-0.87	0.18	0.1554	0.7946	-1.21	-3.05	0.75	0.1994	0.5711
+ad_mssm	Alzheimer disease	microglial cell	57	69	1.95	-1.00	5.11	0.1634	0.7946	1.84	-0.78	4.35	0.1279	0.4798
+ad_mssm	Alzheimer disease	oligodendrocyte	64	102	0.06	-0.04	0.17	0.1804	0.7946	0.40	0.05	0.76	0.03648	0.2526
+ad_mssm	Alzheimer disease	pvalb GABAergic interneuron	77	118	0.04	-0.03	0.12	0.1814	0.7946	0.21	-0.03	0.43	0.02749	0.2474
+ad_radc	Alzheimer disease	L2/3 intratelencephalic projecting glutamatergic neuron	15	7	-0.15	-0.47	0.10	0.1834	0.7946	-0.54	-1.35	0.11	0.09745	0.4385
+ad_mssm	Alzheimer disease	L6 intratelencephalic projecting glutamatergic neuron	36	43	0.05	-0.03	0.15	0.1854	0.7946	0.22	-0.08	0.52	0.1954	0.5711
+ad_mssm	Alzheimer disease	lamp5 GABAergic interneuron	59	88	-0.03	-0.08	0.03	0.1999	0.8178	-0.06	-0.25	0.13	0.4328	0.8287
+kidney	acute kidney injury	kidney loop of Henle thick ascending limb epithelial cell	12	14	-1.47	-7.39	0.11	0.2099	0.8213	5.39	-1.76	10.83	0.1079	0.4416
+ckd_sn	chronic kidney disease	kidney collecting duct beta-intercalated cell	13	8	-0.33	-1.68	0.25	0.2379	0.8382	-1.49	-3.89	1.47	0.3328	0.7571
+ckd_sn	chronic kidney disease	podocyte	6	16	-0.18	-0.61	0.25	0.2644	0.8382	2.44	-1.31	5.77	0.1814	0.5711
+ad_radc	Alzheimer disease	oligodendrocyte	12	6	0.13	-0.02	0.32	0.2644	0.8382	0.66	0.09	1.23	0.1374	0.4948
+ckd_sn	chronic kidney disease	kidney collecting duct alpha-intercalated cell	20	14	-0.80	-2.58	0.69	0.2669	0.8382	-0.42	-2.14	1.36	0.6162	0.9432
+kidney	chronic kidney disease	kidney collecting duct intercalated cell	17	10	-0.97	-3.05	0.55	0.2689	0.8382	3.53	-1.58	9.42	0.2324	0.6151
+ad_mssm	Alzheimer disease	endothelial cell	4	8	-3.05	-17.08	8.70	0.2724	0.8382	-0.15	-4.51	5.10	0.8901	0.9667
+dcm	dilated cardiomyopathy	unknown	28	10	0.59	-0.16	2.04	0.2954	0.8382	5.42	-1.50	11.60	0.05347	0.3208
+ad_mssm	Alzheimer disease	sst GABAergic interneuron	64	117	-0.03	-0.10	0.04	0.2974	0.8382	0.40	0.04	0.73	0.02149	0.2149
+ad_mssm	Alzheimer disease	L6 corticothalamic-projecting glutamatergic cortical neuron	24	38	-0.03	-0.13	0.03	0.3068	0.8382	0.01	-0.09	0.12	0.8026	0.9667
+dcm	dilated cardiomyopathy	fibroblast of cardiac tissue	27	5	3.15	-0.63	8.72	0.3073	0.8382	4.23	-1.52	9.18	0.2094	0.5711
+ad_mssm	Alzheimer disease	L2/3 intratelencephalic projecting glutamatergic neuron	80	134	0.03	-0.04	0.09	0.3253	0.8612	0.06	-0.19	0.33	0.5922	0.9432
+ad_microglia	Alzheimer disease	perivascular macrophage	8	8	5.58	-7.62	19.28	0.3423	0.8803	1.71	-13.09	16.65	0.7816	0.9667
+kidney	chronic kidney disease	kidney collecting duct principal cell	16	12	-1.34	-4.22	0.84	0.3573	0.8933	-3.17	-7.94	1.73	0.1924	0.5711
+ckd_sn	chronic kidney disease	kidney cortex collecting duct principal cell	14	18	-0.54	-1.85	1.02	0.4018	0.9318	-0.35	-3.23	2.31	0.7986	0.9667
+ckd_sn	chronic kidney disease	kidney loop of Henle thin descending limb epithelial cell	9	14	-2.38	-6.91	2.32	0.4358	0.9318	-5.89	-11.48	-0.07	0.1134	0.4439
+kidney	acute kidney injury	endothelial cell	5	9	-0.57	-2.07	1.40	0.4443	0.9318	-6.94	-12.94	-0.03	0.06497	0.3439
+ad_radc	Alzheimer disease	L2/3-6 intratelencephalic projecting glutamatergic neuron	18	8	0.09	-0.11	0.27	0.4533	0.9318	-0.16	-0.69	0.36	0.6657	0.9432
+ckd_sn	acute kidney injury	kidney collecting duct beta-intercalated cell	6	8	0.15	-1.03	1.66	0.4863	0.9318	-0.00	-2.90	3.56	0.997	0.997
+ad_mssm	Alzheimer disease	VIP GABAergic interneuron	84	133	-0.02	-0.08	0.03	0.4928	0.9318	0.10	-0.09	0.29	0.2704	0.6952
+ad_radc	Alzheimer disease	sst GABAergic interneuron	12	8	-0.06	-0.30	0.10	0.5112	0.9318	0.31	-0.24	0.90	0.3768	0.7759
+kidney	acute kidney injury	kidney collecting duct intercalated cell	7	10	-0.77	-2.79	1.06	0.5182	0.9318	5.99	1.78	11.27	0.03298	0.2474
+ad_radc	Alzheimer disease	oligodendrocyte precursor cell	18	8	-0.72	-3.84	0.87	0.5187	0.9318	-0.29	-3.03	1.87	0.8531	0.9667
+kidney	acute kidney injury	kidney connecting tubule epithelial cell	10	11	-0.53	-1.95	0.81	0.5282	0.9318	-0.50	-4.91	4.57	0.8431	0.9667
+ad_radc	Alzheimer disease	L6 intratelencephalic projecting glutamatergic neuron	8	5	0.05	0.00	0.21	0.5287	0.9318	-0.38	-2.53	1.88	0.7536	0.9604
+ckd_sn	acute kidney injury	parietal epithelial cell	8	11	-0.33	-2.01	0.36	0.5422	0.9318	-1.69	-4.79	1.36	0.2784	0.6959
+kidney	chronic kidney disease	kidney loop of Henle thick ascending limb epithelial cell	17	14	1.21	-5.52	4.40	0.5457	0.9318	6.56	-1.92	13.39	0.07346	0.3673
+ckd_sn	chronic kidney disease	epithelial cell of proximal tubule segment 2	20	19	-0.90	-4.29	2.07	0.5672	0.9318	-1.44	-5.39	1.80	0.4243	0.8287
+kidney	chronic kidney disease	endothelial cell	14	9	0.80	-2.67	3.68	0.5762	0.9318	-3.74	-10.29	0.57	0.09145	0.4332
+kidney	acute kidney injury	epithelial cell of proximal tubule	13	10	1.50	-2.24	5.31	0.5787	0.9318	-0.78	-4.51	2.44	0.6967	0.9432
+ad_radc	Alzheimer disease	pvalb GABAergic interneuron	15	8	-0.06	-0.33	0.16	0.5887	0.9318	-0.00	-0.99	1.00	0.9955	0.997
+ckd_sn	acute kidney injury	epithelial cell of proximal tubule segment 3	6	18	-0.64	-2.76	2.61	0.5892	0.9318	-0.62	-4.63	4.01	0.7156	0.9432
+ckd_sn	chronic kidney disease	macula densa epithelial cell	18	9	0.73	-1.85	3.56	0.5997	0.9318	0.66	-3.03	4.71	0.7151	0.9432
+ckd_sn	acute kidney injury	kidney connecting tubule principal cell	6	7	0.52	-2.57	4.51	0.6032	0.9318	0.05	-9.50	5.70	0.9875	0.997
+covid	COVID-19	B cell	26	8	-0.37	-1.06	0.43	0.6102	0.9318	-0.37	-1.78	1.09	0.6322	0.9432
+ckd_sn	acute kidney injury	kidney collecting duct alpha-intercalated cell	13	14	-0.42	-1.60	0.56	0.6132	0.9318	0.19	-1.78	2.70	0.8716	0.9667
+ckd_sn	acute kidney injury	macula densa epithelial cell	11	9	0.85	-3.12	6.05	0.6192	0.9318	1.12	-3.66	6.18	0.6372	0.9432
+kidney	chronic kidney disease	kidney distal convoluted tubule epithelial cell	12	10	0.60	-0.87	2.89	0.6212	0.9318	3.61	-2.81	10.01	0.3063	0.7256
+ckd_sn	acute kidney injury	kidney connecting tubule epithelial cell	12	10	-0.44	-2.38	1.33	0.6477	0.9424	-1.31	-3.78	1.50	0.5182	0.9145
+covid	COVID-19	mature alpha-beta T cell	53	17	0.11	-0.49	0.69	0.6582	0.9424	0.47	-0.36	1.16	0.2899	0.7051
+kidney	chronic kidney disease	parietal epithelial cell	4	4	0.60	-1.83	3.04	0.6597	0.9424	-0.29	-5.95	4.48	0.9095	0.9745
+covid	COVID-19	CD8-positive, alpha-beta T cell	23	8	-0.27	-1.75	1.09	0.6927	0.9533	-0.05	-2.54	2.18	0.968	0.997
+ckd_sn	chronic kidney disease	epithelial cell of proximal tubule segment 1	21	23	-0.37	-2.21	1.28	0.6997	0.9533	0.76	-3.56	5.95	0.7576	0.9604
+kidney	acute kidney injury	kidney distal convoluted tubule epithelial cell	8	10	0.08	-0.43	1.95	0.7126	0.9533	1.35	-3.53	7.00	0.6667	0.9432
+ckd_sn	acute kidney injury	kidney cortex collecting duct principal cell	8	18	-0.25	-1.35	0.94	0.7231	0.9533	-1.13	-3.94	1.72	0.5017	0.9139
+ad_radc	Alzheimer disease	microglial cell	11	7	1.88	-10.03	12.97	0.7311	0.9533	-0.80	-10.28	8.67	0.8761	0.9667
+ckd_sn	chronic kidney disease	kidney loop of Henle thick ascending limb epithelial cell	26	24	0.51	-2.32	3.60	0.7331	0.9533	1.47	-1.82	4.51	0.3978	0.7956
+covid	COVID-19	dendritic cell	44	13	0.04	-0.49	0.44	0.7581	0.9533	0.74	-1.41	2.75	0.5627	0.9432
+kidney	acute kidney injury	kidney collecting duct principal cell	10	12	-0.52	-2.60	1.04	0.7611	0.9533	2.62	-2.31	7.81	0.3468	0.7571
+ad_mssm	Alzheimer disease	L2/3-6 intratelencephalic projecting glutamatergic neuron	85	126	0.01	-0.06	0.07	0.7626	0.9533	0.04	-0.14	0.23	0.6447	0.9432
+ad_radc	Alzheimer disease	VIP GABAergic interneuron	14	8	-0.03	-0.31	0.19	0.7781	0.9593	-0.26	-0.81	0.35	0.3393	0.7571
+ckd_sn	acute kidney injury	podocyte	5	16	-0.03	-0.29	0.22	0.8391	1	4.80	-1.21	11.79	0.03098	0.2474
+ad_mssm	Alzheimer disease	GABAergic neuron	43	84	-0.00	-0.04	0.03	0.8571	1	-0.06	-0.29	0.18	0.6007	0.9432
+ad_radc	Alzheimer disease	GABAergic neuron	8	4	-0.04	-0.74	0.16	0.8661	1	-0.01	-0.79	0.61	0.9725	0.997
+ckd_sn	acute kidney injury	epithelial cell of proximal tubule segment 2	9	19	0.27	-1.93	2.56	0.8756	1	-1.01	-3.48	1.81	0.6107	0.9432
+ckd_sn	chronic kidney disease	kidney connecting tubule epithelial cell	6	10	-0.24	-2.75	1.47	0.8811	1	-0.16	-2.94	2.34	0.9465	0.997
+ckd_sn	chronic kidney disease	kidney connecting tubule principal cell	5	7	0.14	-2.10	2.05	0.8926	1	-3.76	-7.76	-0.37	0.1589	0.5501
+ad_radc	Alzheimer disease	lamp5 GABAergic interneuron	12	8	-0.03	-0.28	0.20	0.8986	1	0.50	0.05	1.07	0.1029	0.4412
+ckd_sn	chronic kidney disease	epithelial cell of proximal tubule segment 3	15	18	-0.12	-2.92	2.87	0.928	1	0.22	-2.20	2.78	0.8826	0.9667
+ad_radc	Alzheimer disease	astrocyte	15	8	-0.01	-0.26	0.22	0.932	1	-0.35	-1.63	0.99	0.6242	0.9432
+ckd_sn	acute kidney injury	kidney loop of Henle cortical thick ascending limb epithelial cell	14	18	0.03	-1.03	0.95	0.962	1	-1.91	-3.60	-0.24	0.04698	0.302
+ckd_sn	acute kidney injury	kidney loop of Henle thick ascending limb epithelial cell	19	24	-0.06	-1.87	1.52	0.9655	1	-1.09	-4.06	1.97	0.5077	0.9139
+ckd_sn	acute kidney injury	epithelial cell of proximal tubule segment 1	9	23	-0.04	-1.68	1.52	0.9685	1	-2.22	-5.00	0.52	0.1919	0.5711
+ckd_sn	chronic kidney disease	kidney loop of Henle cortical thick ascending limb epithelial cell	23	18	0.04	-1.81	1.84	0.969	1	-0.43	-2.87	1.64	0.7041	0.9432
+ad_mssm	Alzheimer disease	vascular leptomeningeal cell	9	15	-0.09	-6.88	7.15	0.978	1	0.36	-4.82	6.23	0.8916	0.9667
+ckd_sn	chronic kidney disease	epithelial cell of proximal tubule	29	26	-0.04	-3.47	3.88	0.984	1	-0.67	-3.78	2.57	0.7011	0.9432
+covid	COVID-19	monocyte	18	9	0.00	-0.58	0.57	0.9965	1	0.43	-2.06	2.78	0.7231	0.9432
+kidney	acute kidney injury	parietal epithelial cell	5	4	0.00	-4.01	1.13	1	1	1.92	-4.30	10.34	0.6877	0.9432

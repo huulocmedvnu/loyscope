@@ -1,0 +1,27 @@
+cell_type	donors	share_above_10pct	null_share	p	q
+kidney collecting duct principal cell	15	20.0	0.06	0.0002	0.0007427
+CD14-low, CD16-positive monocyte	41	17.1	0.39	0.0002	0.0007427
+microglial cell	62	16.1	0.41	0.0002	0.0007427
+kidney loop of Henle thick ascending limb epithelial cell	15	13.3	0.82	0.0018	0.005849
+naive thymus-derived CD8-positive, alpha-beta T cell	44	9.1	0.51	0.0002	0.0007427
+CD8-positive, alpha-beta T cell	34	5.9	0.04	0.0002	0.0007427
+naive thymus-derived CD4-positive, alpha-beta T cell	121	5.0	0.02	0.0002	0.0007427
+oligodendrocyte precursor cell	116	1.7	0.04	0.0002	0.0007427
+oligodendrocyte	85	0.0	0.00	1	1
+astrocyte	105	0.0	0.00	1	1
+L2/3 intratelencephalic projecting glutamatergic neuron	107	0.0	0.00	1	1
+sst GABAergic interneuron	93	0.0	0.00	1	1
+L2/3-6 intratelencephalic projecting glutamatergic neuron	105	0.0	0.00	1	1
+lamp5 GABAergic interneuron	73	0.0	0.00	1	1
+VIP GABAergic interneuron	108	0.0	0.00	1	1
+pvalb GABAergic interneuron	95	0.0	0.00	1	1
+L6 intratelencephalic projecting glutamatergic neuron	35	0.0	0.00	1	1
+GABAergic neuron	65	0.0	0.00	1	1
+L6 corticothalamic-projecting glutamatergic cortical neuron	28	0.0	0.00	1	1
+T cell	22	0.0	0.02	1	1
+memory B cell	22	0.0	0.00	1	1
+CD8-positive, alpha-beta cytotoxic T cell	17	0.0	0.00	1	1
+CD8-positive, alpha-beta memory T cell	22	0.0	0.00	1	1
+central memory CD4-positive, alpha-beta T cell	97	0.0	0.00	1	1
+effector memory CD4-positive, alpha-beta T cell	24	0.0	0.00	1	1
+CD4-positive, alpha-beta T cell	38	0.0	0.00	1	1

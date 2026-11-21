@@ -31,33 +31,20 @@ for c, v in pick:
                              error_x=dict(type="data", array=[1.96 * se], thickness=1, width=0), name=n, legend="legend", showlegend=n not in shown), 1, 1)
     shown.add(n)
 fig.update_xaxes(title_text="Cells without Y, mean of donors (%)", rangemode="tozero", row=1, col=1); fig.update_yaxes(autorange="reversed", row=1, col=1)
-# b: DerSimonian-Laird pooled age slopes
-CLS = [("classical monocyte", lambda c: ("CD14-positive" in c and "CD16-positive" not in c and "monocyte" in c) or c == "classical monocyte"),
-       ("non-classical monocyte", lambda c: "CD16-positive" in c and "monocyte" in c), ("NK cell", lambda c: "natural killer" in c and "T cell" not in c),
-       ("regulatory T cell", lambda c: "regulatory T" in c), ("naive B cell", lambda c: c == "naive B cell"), ("memory B cell", lambda c: "memory B cell" in c),
-       ("CD4 T cell", lambda c: "CD4-positive" in c and "regulatory" not in c), ("CD8 T cell", lambda c: "CD8-positive" in c and "regulatory" not in c)]
-cohorts = [("OneK1K", ext("onek1k_geo.fit.tsv")), ("AIDA", ext("aida.fit.tsv")), ("Immune Aging", ext("iaging.fit.tsv")), ("Indonesia blood", ext("blood.fit.tsv"))]
-pooled = []
-for cl, fnc in CLS:
-    est = []
-    for name, fn in cohorts:
-        if not os.path.exists(fn): continue
-        dd = {}
-        for r in rows(fn):
-            if r["sex"] == "male" and r["disease"] == "normal" and r["k"] != "NaN" and float(r["mu"]) * float(r["mean_umi"]) >= 1.5 and fnc(r["cell_type"]): dd.setdefault(r["donor"], []).append(r)
-        pts = [(age(v[0]["stage"]), sum((float(x["f"]) - float(x["pseudo_f_med"])) * int(x["n"]) for x in v) / sum(int(x["n"]) for x in v)) for v in dd.values() if age(v[0]["stage"])]
-        if len(pts) < 10: continue
-        x = np.array([p[0] for p in pts]) / 10; y = np.array([p[1] for p in pts]); X = np.c_[np.ones_like(x), x]
-        b = np.linalg.lstsq(X, y, rcond=None)[0]; s2 = ((y - X @ b) ** 2).sum() / (len(y) - 2); est.append((b[1], math.sqrt(s2 * np.linalg.inv(X.T @ X)[1, 1])))
-    if len(est) < 2: continue
-    w = [1 / s ** 2 for _, s in est]; bf = sum(a * b for a, (b, _) in zip(w, est)) / sum(w)
-    Q = sum(a * (b - bf) ** 2 for a, (b, _) in zip(w, est)); dfree = len(est) - 1; Cc = sum(w) - sum(a ** 2 for a in w) / sum(w); tau2 = max(0, (Q - dfree) / Cc)
-    wr = [1 / (s ** 2 + tau2) for _, s in est]; br = sum(a * b for a, (b, _) in zip(wr, est)) / sum(wr); se = math.sqrt(1 / sum(wr))
-    pooled.append((cl, 100 * br, 100 * se, len(est), max(0, (Q - dfree) / Q) * 100 if Q > 0 else 0))
-fig.add_trace(go.Scatter(x=[p[1] for p in pooled], y=[f"{p[0]} (I2 {p[4]:.0f}%)" for p in pooled], mode="markers", marker=dict(symbol="diamond", size=10, color=C[0]),
-                         error_x=dict(type="data", array=[1.96 * p[2] for p in pooled], thickness=1.2, width=0), showlegend=False), 1, 2)
+# b: pooled age slopes (REML, Hartung-Knapp interval) with the estimate of each cohort; from analysis/robust_stats.py
+META = rows(os.path.join(TAB, "robust_meta.tsv")); PC = rows(os.path.join(TAB, "robust_meta_cohorts.tsv"))
+lab = {m["cell_class"]: f"{m['cell_class']} (I2 {float(m['I2']):.0f}%)" for m in META}
+CO = {"onek1k_geo": ("OneK1K", C[2]), "aida": ("AIDA", C[3]), "iaging": ("Immune Aging", C[5 % len(C)]), "blood": ("Indonesia", C[6 % len(C)])}
+for k, (nm, col) in CO.items():
+    pts = [p for p in PC if p["cohort"] == k]
+    fig.add_trace(go.Scatter(x=[float(p["slope_per_decade"]) for p in pts], y=[lab[p["cell_class"]] for p in pts], mode="markers",
+                             marker=dict(size=6, color=col, opacity=0.8), name=nm, legend="legend3"), 1, 2)
+fig.add_trace(go.Scatter(x=[float(m["slope_per_decade"]) for m in META], y=[lab[m["cell_class"]] for m in META], mode="markers",
+                         marker=dict(symbol="diamond", size=11, color=BLACK),
+                         error_x=dict(type="data", symmetric=False, array=[float(m["ci_hi"]) - float(m["slope_per_decade"]) for m in META],
+                                      arrayminus=[float(m["slope_per_decade"]) - float(m["ci_lo"]) for m in META], thickness=1.4, width=0), name="pooled", legend="legend3"), 1, 2)
 fig.add_vline(x=0, line=dict(color=GREY), row=1, col=2)
-fig.update_xaxes(title_text="Change per decade of age (points)", row=1, col=2); fig.update_yaxes(autorange="reversed", row=1, col=2)
+fig.update_xaxes(title_text="Change per decade (points)", range=[-1.6, 9.5], row=1, col=2); fig.update_yaxes(autorange="reversed", row=1, col=2)
 # c: donor-level LOY against age in the MSSM brain cohort, with least-squares lines
 import numpy as np
 BR = [("vascular leptomeningeal cell", "VLMC", C[1]), ("endothelial cell", "endothelium", C[4]), ("microglial cell", "microglia", C[0]), ("L2/3-6 intratelencephalic projecting glutamatergic neuron", "neurons", C[7])]
@@ -72,8 +59,8 @@ for ct, lab, col in BR:
     fig.add_trace(go.Scatter(x=x, y=y, mode="markers", marker=dict(size=5, color=col, opacity=0.55), name=f"{lab} ({len(pts)})", legend="legend2"), 2, 2)
     xx = np.array([x.min(), x.max()]); fig.add_trace(go.Scatter(x=xx, y=b[0] * xx + b[1], mode="lines", line=dict(color=col, width=2.5), showlegend=False), 2, 2)
 fig.update_xaxes(title_text="Age (years)", row=2, col=2); fig.update_yaxes(title_text="Cells without Y (%)", range=[-2, 36], row=2, col=2)
-style(fig, width=1000, height=860, legends=dict(legend=leg(0.0, -0.08, "left", "top"), legend_orientation="h", legend2=leg(0.64, 0.40, "left", "top")))
+style(fig, width=1000, height=860, legends=dict(legend=leg(0.0, -0.08, "left", "top"), legend_orientation="h", legend2=leg(0.64, 0.40, "left", "top"), legend3=leg(0.995, 0.615, "right", "bottom")))
 fig.update_layout(margin=dict(l=280, b=90))
 panel_titles_left(fig, [-0.33, 0.62, 0.62])
 save(fig, "fig5")
-import json; json.dump(pooled, open(os.path.join(TAB, "age_slope_meta.json"), "w"))
+

@@ -1,0 +1,9 @@
+cell_class	cohorts	slope_per_decade	ci_lo	ci_hi	I2	excludes_zero
+classical monocyte	4	1.57	-1.20	4.34	83	False
+non-classical monocyte	4	0.26	-0.08	0.60	75	False
+NK cell	4	0.89	-0.94	2.72	84	False
+regulatory T cell	3	2.18	0.03	4.32	0	True
+naive B cell	4	0.14	-0.25	0.52	68	False
+memory B cell	4	-0.02	-0.14	0.11	3	False
+CD4 T cell	4	0.13	-0.14	0.40	72	False
+CD8 T cell	4	0.07	-0.02	0.16	40	False

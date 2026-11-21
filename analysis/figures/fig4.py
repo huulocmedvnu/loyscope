@@ -50,11 +50,12 @@ cons = [("Kidney TAL, CKD (KPMP cells)", ext("kidney.fitamb.tsv"), "kidney loop 
         ("Heart cardiomyocytes, DCM", ext("dcm.fitamb.tsv"), "cardiac muscle cell", "dilated cardiomyopathy", 2),
         ("Microglia, Alzheimer disease (fresh)", ext("ad_microglia.fitamb.tsv"), "microglial cell", "Alzheimer disease", 2),
         ("Microglia, Alzheimer disease (MSSM)", ext("ad_mssm.fitamb.tsv"), "microglial cell", "Alzheimer disease", 5)]
-ylab = []
-res = []
+RC = {(r["dataset"], r["disease"], r["cell_type"]): r for r in rows(os.path.join(TAB, "robust_disease_contrasts.tsv"))}
+ylab = []; res = []
 for name, fn, ct, case, thr in cons:
-    (m, n_), nc, nn = contrast(fn, ct, case, thr)
-    ylab.append(f"{name} ({nc} vs {nn})"); res.append((m, n_))
+    r = RC[(os.path.basename(fn).split(".")[0], case, ct)]
+    ylab.append(f"{name} ({r['n_case']} vs {r['n_ctrl']})")
+    res.append(((float(r["zero_read_diff"]), float(r["z_lo"]), float(r["z_hi"])), (float(r["model_diff"]), float(r["m_lo"]), float(r["m_hi"]))))
 for j, (name, c, off) in enumerate([("zero-read rule", C[0], -0.15), ("detection model", C[1], 0.15)]):
     xs = [r[j][0] for r in res]
     fig.add_trace(go.Scatter(x=xs, y=[i + off for i in range(len(res))], mode="markers", marker=dict(symbol="diamond", size=10, color=c),
