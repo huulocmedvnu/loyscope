@@ -183,7 +183,7 @@ for ds, case, thr in DIS:
     raw = {}
     for r in rows(fn):
         if r["sex"] == "male" and r["k"] != "NaN" and float(r["mu"]) * float(r["mean_umi"]) >= thr and r["disease"] in (case, "normal"):
-            raw.setdefault((r["cell_type"], r["donor"]), []).append((float(r["naive_zero"]), int(r["n"])))
+            raw.setdefault((r["cell_type"], r["donor"]), []).append((float(r["naive_zero"]), int(r["n"]), float(r["mean_umi"])))
     by = {}
     for (ct, d), x in dv.items():
         if x["age"] is not None: by.setdefault(ct, []).append((d, x))
@@ -193,7 +193,10 @@ for ds, case, thr in DIS:
         y = np.array([x["v"] for _, x in g]); dz = np.array([1.0 if x["disease"] == case else 0.0 for _, x in g]); a = np.array([x["age"] for _, x in g]) / 10
         X = np.column_stack([np.ones(len(g)), dz, a]); w = re_weights(X, y, np.array([x["se"] for _, x in g]))[0]
         b, p = perm_p(X, y, w, 1, ["all"] * len(g))
-        yn = np.array([sum(z * n for z, n in raw[(ct, d)]) / sum(n for _, n in raw[(ct, d)]) for d, _ in g])
+        yn = np.array([sum(z * n for z, n, _ in raw[(ct, d)]) / sum(n for _, n, _ in raw[(ct, d)]) for d, _ in g])
+        # difference in library size between disease and control cells (cell-weighted mean UMI per donor), same model
+        yu = np.array([sum(u * n for _, n, u in raw[(ct, d)]) / sum(n for _, n, _ in raw[(ct, d)]) for d, _ in g])
+        bu, pu = perm_p(X, yu, np.ones(len(g)), 1, ["all"] * len(g))
         bn, pn = perm_p(X, yn, np.ones(len(g)), 1, ["all"] * len(g))
         # donor bootstrap 95% intervals (weights re-estimated in each resample)
         se_all = np.array([x["se"] for _, x in g]); rb = np.random.default_rng(7); bm, bz = [], []
@@ -202,13 +205,13 @@ for ds, case, thr in DIS:
             if not (0 < dz[i].sum() < len(i)): continue
             Xi = X[i]; bm.append(wls(Xi, y[i], re_weights(Xi, y[i], se_all[i])[0])[1]); bz.append(wls(Xi, yn[i], np.ones(len(i)))[1])
         ci = lambda v: (100 * np.percentile(v, 2.5), 100 * np.percentile(v, 97.5))
-        con.append(dict(dataset=ds, disease=case, cell_type=ct, n_case=nc, n_ctrl=nn, model_diff=100 * b, p=p, zero_read_diff=100 * bn, p_zero=pn,
+        con.append(dict(dataset=ds, disease=case, cell_type=ct, n_case=nc, n_ctrl=nn, model_diff=100 * b, p=p, zero_read_diff=100 * bn, p_zero=pn, umi_diff=bu, p_umi=pu,
                         m_lo=ci(bm)[0], m_hi=ci(bm)[1], z_lo=ci(bz)[0], z_hi=ci(bz)[1]))
 q = bh([c["p"] for c in con]); qn = bh([c["p_zero"] for c in con])
 for c, a_, b_ in zip(con, q, qn): c["q"] = a_; c["q_zero"] = b_
 with open(os.path.join(TAB, "robust_disease_contrasts.tsv"), "w") as f:
-    f.write("dataset\tdisease\tcell_type\tn_case\tn_ctrl\tmodel_diff\tm_lo\tm_hi\tp\tq\tzero_read_diff\tz_lo\tz_hi\tp_zero\tq_zero\n")
-    for c in sorted(con, key=lambda c: c["p"]): f.write(f"{c['dataset']}\t{c['disease']}\t{c['cell_type']}\t{c['n_case']}\t{c['n_ctrl']}\t{c['model_diff']:.2f}\t{c['m_lo']:.2f}\t{c['m_hi']:.2f}\t{c['p']:.4g}\t{c['q']:.4g}\t{c['zero_read_diff']:.2f}\t{c['z_lo']:.2f}\t{c['z_hi']:.2f}\t{c['p_zero']:.4g}\t{c['q_zero']:.4g}\n")
+    f.write("dataset\tdisease\tcell_type\tn_case\tn_ctrl\tmodel_diff\tm_lo\tm_hi\tp\tq\tzero_read_diff\tz_lo\tz_hi\tp_zero\tq_zero\tumi_diff\tp_umi\n")
+    for c in sorted(con, key=lambda c: c["p"]): f.write(f"{c['dataset']}\t{c['disease']}\t{c['cell_type']}\t{c['n_case']}\t{c['n_ctrl']}\t{c['model_diff']:.2f}\t{c['m_lo']:.2f}\t{c['m_hi']:.2f}\t{c['p']:.4g}\t{c['q']:.4g}\t{c['zero_read_diff']:.2f}\t{c['z_lo']:.2f}\t{c['z_hi']:.2f}\t{c['p_zero']:.4g}\t{c['q_zero']:.4g}\t{c['umi_diff']:.0f}\t{c['p_umi']:.4g}\n")
 
 # ---------- 4. sensitivity to the expected-Y threshold ----------
 sens = []

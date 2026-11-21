@@ -152,7 +152,7 @@ put("published_comparison", N["published_comparison"]); put("onek1k_cd14_donor_m
 D = rows(os.path.join(T, "robust_disease_contrasts.tsv"))
 put("disease_contrasts", {"n": len(D), "model_p05": sum(float(r["p"]) < 0.05 for r in D), "zero_p05": sum(float(r["p_zero"]) < 0.05 for r in D),
                           "model_q01": sum(float(r["q"]) < 0.1 for r in D), "zero_q01": sum(float(r["q_zero"]) < 0.1 for r in D)})
-pick = lambda ds, dis, ct: next(({k: (round(float(r[k]), 2) if k in ("model_diff", "zero_read_diff") else float(r[k])) for k in ("model_diff", "p", "q", "zero_read_diff", "p_zero", "n_case", "n_ctrl")}
+pick = lambda ds, dis, ct: next(({k: (round(float(r[k]), 2) if k in ("model_diff", "zero_read_diff") else float(r[k])) for k in ("model_diff", "p", "q", "zero_read_diff", "p_zero", "n_case", "n_ctrl", "umi_diff", "p_umi") if k in r}
                                  for r in D if r["dataset"] == ds and r["disease"] == dis and r["cell_type"] == ct), None)
 for key, args in {"kidney_TAL_CKD": ("kidney", "chronic kidney disease", "kidney loop of Henle thick ascending limb epithelial cell"),
                   "nuclei_PT_AKI": ("ckd_sn", "acute kidney injury", "epithelial cell of proximal tubule"),
@@ -161,6 +161,66 @@ for key, args in {"kidney_TAL_CKD": ("kidney", "chronic kidney disease", "kidney
                   "microglia_radc": ("ad_radc", "Alzheimer disease", "microglial cell"), "opc_mssm": ("ad_mssm", "Alzheimer disease", "oligodendrocyte precursor cell")}.items():
     put(f"contrast[{key}]", pick(*args))
 best = min(D, key=lambda r: float(r["p"])); put("contrast_smallest_p", [best["dataset"], best["cell_type"], round(float(best["model_diff"]), 2), float(best["p"]), float(best["q"])])
+
+# ---- selection: LOY against Y expression of intact cells across blood cell types (as Figure 6c) ----
+LT = [r for r in rows(os.path.join(T, "loy_table.tsv")) if r["dataset"] in ("aida", "iaging") and r["disease"] == "normal" and r["age"] not in ("None", "") and float(r["age"]) >= 55]
+sel = {}
+for ds in ("aida", "iaging"):
+    mu = {}
+    for r in male_groups(os.path.join(E, f"{ds}.fitamb.tsv"), 5): mu.setdefault(r["cell_type"], []).append(float(r["mu"]))
+    don = {}
+    for r in LT:
+        if r["dataset"] == ds:
+            e = don.setdefault((r["cell_type"], r["donor"]), [0, 0.0]); n = int(r["n"]); e[0] += n; e[1] += n * max(0.0, float(r["loy"]))
+    ct = {}
+    for (c, d), (n, s_) in don.items(): ct.setdefault(c, []).append(100 * s_ / n)
+    pts = [(st.median(mu[c]), st.mean(v)) for c, v in ct.items() if len(v) >= 5 and c in mu]
+    rk = lambda v: [sorted(v).index(x) for x in v]; a_, b_ = rk([p[0] for p in pts]), rk([p[1] for p in pts]); n_ = len(pts)
+    sel[ds] = {"cell_types": n_, "rho": round(1 - 6 * sum((a_[i] - b_[i]) ** 2 for i in range(n_)) / (n_ * (n_ * n_ - 1)), 2)}
+put("selection_rho", sel)
+
+# ---- spatial (spaty tiles of 16 x 16 bins of 8 um) ----
+SP = os.path.join(RES, "spatial")
+def tiles(n): return rows(os.path.join(SP, f"Visium_HD_Human_{n}.t16.tiles.tsv"))
+secs = sorted(os.path.basename(f).replace("Visium_HD_Human_", "").replace(".t16.tiles.tsv", "") for f in glob.glob(os.path.join(SP, "*.t16.tiles.tsv")))
+secs = [n for n in secs if n != "Colon_Cancer"]  # later reanalysis of the P2 section
+rate = {n: sum(float(r["y"]) for r in tiles(n)) / sum(float(r["umi"]) for r in tiles(n)) for n in secs}
+male = [n for n in secs if rate[n] > 1e-5]; fem = [n for n in secs if n not in male]
+put("spatial_sections", {"total": len(secs), "male": len(male), "female": len(fem)})
+put("spatial_msy_per_umi", {"female_max": f"{max(rate[n] for n in fem):.2e}", "male_min": f"{min(rate[n] for n in male):.2e}", "male_max": f"{max(rate[n] for n in male):.2e}"})
+put("spatial_msy_reads_per_bin_male", round(sum(sum(float(r["y"]) for r in tiles(n)) for n in male) / sum(sum(float(r["bins"]) for r in tiles(n)) for n in male), 3))
+qq = {}
+for n in ("Colon_Cancer_P2", "Colon_Normal_P3", "Prostate_Cancer_FFPE"):
+    R_ = [r for r in tiles(n) if float(r["epi"]) + float(r["stroma"]) >= 50]
+    for r in R_: r["ef"] = float(r["epi"]) / (float(r["epi"]) + float(r["stroma"]))
+    R_.sort(key=lambda r: r["ef"]); k = len(R_) // 5
+    parts = [R_[i * k:(i + 1) * k] if i < 4 else R_[4 * k:] for i in range(5)]
+    qq[n] = [round(sum(float(r["y"]) for r in g) / sum(float(r["x"]) for r in g), 2) for g in parts]
+put("spatial_ratio_by_epithelial_quintile", qq)
+sm = {}
+for n in ("Colon_Cancer_P2", "Colon_Normal_P3", "Prostate_Cancer_FFPE", "Tonsil_Fresh_Frozen"):
+    S_ = rows(os.path.join(SP, f"Visium_HD_Human_{n}.t16.summary.tsv")); y = S_[0]; c = S_[1:]
+    sm[n] = {"moran": round(float(y["moran_I"]), 2), "sig_tiles": int(y["n_sig_q05"]), "control_moran_mean": round(st.mean(float(x["moran_I"]) for x in c), 2),
+             "control_moran_max": round(max(float(x["moran_I"]) for x in c), 2), "control_sig_max": max(int(x["n_sig_q05"]) for x in c)}
+put("spatial_tests", sm)
+
+# ---- ENCODE heart chromatin: MSY fragments per nucleus and female background ----
+EN = os.path.join(RES, "encode"); import gzip
+fem_t = fem_y = 0.0
+for fn in glob.glob(os.path.join(EN, "fem_*.tsv")):
+    for r in rows(fn): fem_t += float(r["total"]); fem_y += float(r["chrY_msy"])
+bg = fem_y / fem_t if fem_t else float("nan"); per_nuc = []; ratios = []
+for fn in glob.glob(os.path.join(EN, "*.multi.nuclei.tsv.gz")):
+    acc = os.path.basename(fn).split(".")[0]
+    keep = set(r["cell_id"] for r in csv.DictReader(gzip.open(fn, "rt"), delimiter="\t"))
+    t = y = 0.0
+    for r in csv.DictReader(gzip.open(os.path.join(EN, f"{acc}.atac.tsv.gz"), "rt"), delimiter="\t"):
+        if r["cell_id"] in keep:
+            t += float(r["total"]); y += float(r["chrY_msy"]); per_nuc.append(float(r["chrY_msy"]))
+    if t > 0: ratios.append(bg / (y / t))
+D_ = json.load(open(os.path.join(T, "encode_dosage_summary.json")))
+put("encode_atac", {"libraries": len(ratios), "median_msy_fragments_per_nucleus": st.median(per_nuc), "mean_msy_fragments_per_nucleus": round(st.mean(per_nuc), 1),
+                    "background_share_of_male_rate_median_iqr_pct": [round(100 * st.median(ratios)), round(100 * sorted(ratios)[len(ratios) // 4]), round(100 * sorted(ratios)[3 * len(ratios) // 4])], "control_dosage_sd_points": round(100 * D_["noise_sd_control"], 1)})
 
 # ---- ambient sensitivity: contamination fraction x3 and x10, and the relative parameterisation ----
 def compare(suffix):
