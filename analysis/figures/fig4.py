@@ -64,7 +64,7 @@ for j, (name, c, off) in enumerate([("zero-read rule", C[0], -0.15), ("detection
 fig.add_vline(x=0, line=dict(color=GREY), row=2, col=1)
 fig.update_yaxes(tickvals=list(range(len(res))), ticktext=ylab, autorange="reversed", row=2, col=1)
 fig.update_xaxes(title_text="Difference in cells without Y, age-adjusted (points)", row=2, col=1)
-# c: how the 25 audited studies call LOY
+# c: calling rules of the 25 studies found by the literature search
 cat = {}
 for r in rows(os.path.join(TAB, "audit_table.tsv")):
     d = r["depth_handling"].lower()
