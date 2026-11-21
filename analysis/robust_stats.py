@@ -69,8 +69,9 @@ def bh(ps):
     for rank, i in reversed(list(enumerate(order, 1))): run = min(run, ps[i] * m / rank); q[i] = run
     return q
 
+HEART = lambda r: any(k in r["tissue"].lower() for k in ("heart", "ventric", "atri", "myocard"))
 def age_slopes(name, thr=5, min_donors=8, unweighted=False):
-    dv = donor_values(os.path.join(EXT, f"{name}.fitamb.tsv"), thr)
+    dv = donor_values(os.path.join(EXT, f"{name}.fitamb.tsv"), thr, HEART if name == "encode_heart" else (lambda r: True))
     by = {}
     for (ct, d), x in dv.items():
         if x["age"] is not None: by.setdefault(ct, []).append(x)
@@ -88,14 +89,14 @@ def age_slopes(name, thr=5, min_donors=8, unweighted=False):
 
 # ---------- 1. age slopes ----------
 slopes = []
-for ds in ["ad_mssm", "ad_radc", "retina", "aida", "iaging", "onek1k_geo", "blood", "tsapiens", "ad_microglia"]:
+for ds in ["ad_mssm", "ad_radc", "retina", "aida", "iaging", "onek1k_geo", "blood", "tsapiens", "ad_microglia", "encode_heart"]:
     if os.path.exists(os.path.join(EXT, f"{ds}.fitamb.tsv")):
-        thr = 1.5 if ds in ("iaging", "onek1k_geo", "blood") else 5
+        thr = 1.5 if ds in ("iaging", "onek1k_geo", "blood") else 2 if ds == "encode_heart" else 5
         slopes += age_slopes(ds, thr)
 unw = {}
-for ds in ["ad_mssm", "ad_radc", "retina", "aida", "iaging", "onek1k_geo", "blood", "tsapiens", "ad_microglia"]:
+for ds in ["ad_mssm", "ad_radc", "retina", "aida", "iaging", "onek1k_geo", "blood", "tsapiens", "ad_microglia", "encode_heart"]:
     if os.path.exists(os.path.join(EXT, f"{ds}.fitamb.tsv")):
-        for o in age_slopes(ds, 1.5 if ds in ("iaging", "onek1k_geo", "blood") else 5, unweighted=True): unw[(ds, o["cell_type"])] = o
+        for o in age_slopes(ds, 1.5 if ds in ("iaging", "onek1k_geo", "blood") else 2 if ds == "encode_heart" else 5, unweighted=True): unw[(ds, o["cell_type"])] = o
 with open(os.path.join(TAB, "robust_age_slopes.tsv"), "w") as f:
     f.write("dataset\tcell_type\tdonors\tslope_per_decade\tp\tq\tadjusted_for_disease\tunweighted_slope\tunweighted_p\n")
     for o in sorted(slopes, key=lambda o: (o["dataset"], o["p"])):

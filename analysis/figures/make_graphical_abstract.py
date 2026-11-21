@@ -116,7 +116,7 @@ text(rx - 10, 640, "Large clones in a", 25); text(rx - 10, 672, "minority of old
 # ================= footer =================
 add(f"<rect x='0' y='808' width='{W}' height='92' fill='#F5F7FB'/>")
 text(W / 2, 850, "Loss of chromosome Y is confined to dividing cells and concentrated in the vasculature", 30, "bold", "middle", INK)
-text(W / 2, 886, "9.6 million cells   •   2,235 men   •   23 organs   •   239 cell types   •   33 diseases   •   23 atlases", 22, "normal", "middle", MUTE)
+text(W / 2, 886, "10.5 million cells   •   2,287 men   •   24 organs   •   242 cell types   •   33 diseases   •   24 datasets", 22, "normal", "middle", MUTE)
 add("</svg>")
 p = os.path.join(OUT, "graphical_abstract.svg"); open(p, "w").write("\n".join(svg) + "\n")
 w600 = round(180 / 25.4 * 600); png = os.path.join(OUT, "graphical_abstract.png")

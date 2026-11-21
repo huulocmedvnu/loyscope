@@ -52,7 +52,7 @@ def row_frame(k, col, title, lines_, fig):
     return y
 
 # ---- row 1: depth and detection
-y = row_frame(0, BLUE, "Measuring loss in single cells", ["23 public atlases", "9.6 million cells, 2,235 men", "23 organs, 33 diseases", f"{N['male_groups_all']:,} donor-cell-type groups"], "Fig. 2")
+y = row_frame(0, BLUE, "Measuring loss in single cells", ["24 public datasets", "10.5 million cells, 2,287 men", "24 organs, 33 diseases", f"{N['male_groups_all']:,} donor-cell-type groups"], "Fig. 2")
 cy = y + 120
 for i, (r, nY) in enumerate([(22, 3), (14, 1), (9, 0)]):
     x = C2 + 60 + i * 120
