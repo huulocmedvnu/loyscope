@@ -1,4 +1,5 @@
 # Figure 7: consequences of LOY in cells and constraint across cell types
+# panels a and b: genome-wide contrast matched on library size deciles (loydepth)
 import glob
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -9,14 +10,14 @@ fig = make_subplots(rows=1, cols=3, horizontal_spacing=0.1, column_widths=[0.33,
 # a: genome-wide contrast in memory Treg (Immune Aging), excluding Y, PAR and Y lncRNAs; top genes by sign test
 PAR = {"PLCXD1", "GTPBP6", "PPP2R3B", "SHOX", "CRLF2", "CSF2RA", "IL3RA", "SLC25A6", "ASMTL", "P2RY8", "AKAP17A", "ASMT", "DHRSX", "ZBED1", "CD99"}
 Y = {"RPS4Y1", "ZFY", "USP9Y", "DDX3Y", "UTY", "KDM5D", "EIF1AY", "TXLNGY", "NLGN4Y", "PRKY", "TMSB4Y"}
-R = [r for r in rows(ext("iaging.de.tsv")) if r["cell_type"] == "memory regulatory T cell" and r["gene"] not in PAR | Y and not r["gene"].startswith(("TTTY", "LINC00278"))]
+R = [r for r in rows(ext("iaging.de_depth.tsv")) if r["cell_type"] == "memory regulatory T cell" and r["gene"] not in PAR | Y and not r["gene"].startswith(("TTTY", "LINC00278"))]
 R = sorted([r for r in R if float(r["q_bh"]) < 0.1], key=lambda r: float(r["sign_p"]))
 up = sorted([r for r in R if float(r["median_log2fc"]) > 0], key=lambda r: float(r["sign_p"]))[:10]
 dn = sorted([r for r in R if float(r["median_log2fc"]) < 0], key=lambda r: float(r["sign_p"]))[:10]
 sel = sorted(up + dn, key=lambda r: float(r["median_log2fc"]))
 # a: volcano over all genes tested in memory regulatory T cells
 import math
-ALL = [r for r in rows(ext("iaging.de.tsv")) if r["cell_type"] == "memory regulatory T cell" and r["gene"] not in Y]
+ALL = [r for r in rows(ext("iaging.de_depth.tsv")) if r["cell_type"] == "memory regulatory T cell" and r["gene"] not in Y]
 xs_v = [float(r["median_log2fc"]) for r in ALL]; ys_v = [-math.log10(max(float(r["q_bh"]), 1e-12)) for r in ALL]
 cols_v = [(C[1] if x > 0 else C[0]) if float(r["q_bh"]) < 0.1 else "#C9CFDA" for x, r in zip(xs_v, ALL)]
 fig.add_trace(go.Scatter(x=xs_v, y=ys_v, mode="markers", marker=dict(size=4, color=cols_v), showlegend=False), 1, 1)
