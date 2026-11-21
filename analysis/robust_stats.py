@@ -217,6 +217,9 @@ for thr in (2, 3, 5, 10):
     for ds in sorted({d for d, _ in KEY}):
         for o in age_slopes(ds, thr):
             if (ds, o["cell_type"]) in KEY: sens.append(dict(threshold=thr, **o))
+# grouping by sequencing library in place of donor (loyregroup outputs <name>_lib)
+for o in age_slopes("retina_lib", 5) if os.path.exists(os.path.join(EXT, "retina_lib.fitamb.tsv")) else []:
+    if ("retina", o["cell_type"]) in KEY: sens.append(dict(threshold="library", **o))
 with open(os.path.join(TAB, "robust_threshold_sensitivity.tsv"), "w") as f:
     f.write("threshold\tdataset\tcell_type\tdonors\tslope_per_decade\tp\n")
     for s in sens: f.write(f"{s['threshold']}\t{s['dataset']}\t{s['cell_type']}\t{s['donors']}\t{s['slope_per_decade']:.2f}\t{s['p']:.4g}\n")
