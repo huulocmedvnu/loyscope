@@ -9,7 +9,17 @@ import csv, gzip, glob, os, sys, json, math
 import numpy as np
 
 ROOT = sys.argv[1] if len(sys.argv) > 1 else "."
-BG = float(os.environ.get("ATAC_BG", "3.951e-4")); NP = 20; NB = 300; MIN_N = 100
+NP = 20; NB = 300; MIN_N = 100
+# female background: MSY fragments per fragment in the female libraries (encmulti --female outputs)
+_fem = glob.glob(os.path.join(ROOT, "encode", "fem_*.tsv"))
+if _fem:
+    _t = _y = 0.0
+    for fn in _fem:
+        for r in csv.DictReader(open(fn), delimiter="\t"):
+            _t += float(r["total"]); _y += float(r["chrY_msy"])
+    BG = _y / _t
+else:
+    BG = float(os.environ["ATAC_BG"])
 rng = np.random.default_rng(11)
 man = {r[0]: r for r in csv.reader(open(os.environ.get("MANIFEST", "config/encode_manifest.tsv")), delimiter="\t")}
 def age_of(stage):
