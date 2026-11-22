@@ -23,7 +23,7 @@ pick = [(c, v) for c, v in ct.items() if len(v) >= 10 and comp(c)[0]]
 pick.sort(key=lambda x: -st.mean(x[1])); pick = pick[:14] + [p for p in pick[14:] if comp(p[0])[0] == "neural"][:4]
 fig = make_subplots(rows=2, cols=2, horizontal_spacing=0.32, vertical_spacing=0.17, column_widths=[0.5, 0.5],
                     specs=[[{"rowspan": 2}, {}], [None, {}]],
-                    subplot_titles=("a  Men aged 55 or older", "b  Change with age, four blood cohorts", "c  Brain, MSSM cohort"))
+                    subplot_titles=("a  Men aged 55 or older", "b  Change with age, blood", "c  Brain, MSSM cohort"))
 shown = set()
 for c, v in pick:
     n, col = comp(c); v = sorted(v); m = st.mean(v); se = st.pstdev(v) / math.sqrt(len(v))
@@ -60,7 +60,7 @@ for ct, lab, col in BR:
     xx = np.array([x.min(), x.max()]); fig.add_trace(go.Scatter(x=xx, y=b[0] * xx + b[1], mode="lines", line=dict(color=col, width=2.5), showlegend=False), 2, 2)
 fig.update_xaxes(title_text="Age (years)", row=2, col=2); fig.update_yaxes(title_text="Cells without Y (%)", range=[-2, 36], row=2, col=2)
 style(fig, width=1000, height=860, legends=dict(legend=leg(0.0, -0.08, "left", "top"), legend_orientation="h", legend2=leg(0.64, 0.40, "left", "top"), legend3=leg(0.995, 0.615, "right", "bottom")))
-fig.update_layout(margin=dict(l=280, b=90))
+fig.update_layout(margin=dict(l=400, b=90))
 panel_titles_left(fig, [-0.33, 0.62, 0.62])
 save(fig, "fig5")
 
