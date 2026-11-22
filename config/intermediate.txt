@@ -1,2 +1,2 @@
 # archive of intermediate outputs (gh:<release tag> for a GitHub release of this repository, or an https URL such as a Zenodo file)
-gh:intermediate-v1
+https://github.com/huulocmedvnu/loyscope/releases/download/intermediate-v1/loyscope_intermediate.tar.gz
