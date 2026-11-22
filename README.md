@@ -1,5 +1,7 @@
 # loyscope
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24431454.svg)](https://doi.org/10.5281/zenodo.24431454)
+
 Detection-aware estimation of mosaic loss of chromosome Y (LOY) from single-cell and single-nucleus RNA-seq.
 
 A cell without reads from the male-specific region of chromosome Y is not necessarily a cell without chromosome Y:
