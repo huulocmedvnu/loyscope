@@ -6,6 +6,7 @@ authors:
     given-names: Thai Huu Loc
     orcid: "https://orcid.org/0009-0009-1810-010X"
     affiliation: "Department of Obstetrics and Gynecology, Hong Hung Hospital, Tay Ninh, Viet Nam"
-version: 0.1.0
+version: 1.0.0
 license: MIT
 repository-code: "https://github.com/huulocmedvnu/loyscope"
+date-released: "2026-11-22"
